@@ -1,0 +1,1 @@
+export const databaseStatus = "unconfigured";
