@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -30,19 +31,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={cn(
-        "h-full",
-        "dark",
-        "font-sans",
-        "antialiased",
-        inter.variable,
-        spaceGrotesk.variable,
-        jetBrainsMono.variable,
-      )}
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/dashboard"
+      signUpFallbackRedirectUrl="/onboarding"
     >
-      <body className="min-h-full flex flex-col">{children}</body>
-    </html>
+      <html
+        lang="en"
+        className={cn(
+          "h-full",
+          "dark",
+          "font-sans",
+          "antialiased",
+          inter.variable,
+          spaceGrotesk.variable,
+          jetBrainsMono.variable,
+        )}
+      >
+        <body className="min-h-full flex flex-col">{children}</body>
+      </html>
+    </ClerkProvider>
   );
 }
