@@ -23,7 +23,7 @@ const footerColumns = [
   ["Features", "Pricing", "ATS Checker", "Templates", "Chrome Extension"],
   ["Sign Up", "Sign In", "Privacy Policy", "Terms of Service"],
   ["Help Center", "Contact Us", "Interview Prep", "Resources"],
-  ["About Us", "Careers", "Press", "Instagram", "LinkedIn", "Twitter"],
+  ["About Us", "Instagram", "LinkedIn", "Twitter"],
 ];
 
 const scoreDots = [

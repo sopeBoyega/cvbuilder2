@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const protectedPrefixes = [
   "/applications",
@@ -13,17 +13,15 @@ const protectedPrefixes = [
   "/templates",
 ];
 
-export function proxy(request: NextRequest) {
-  const isProtectedRoute = protectedPrefixes.some((prefix) =>
-    request.nextUrl.pathname.startsWith(prefix),
-  );
+const isProtectedRoute = createRouteMatcher(
+  protectedPrefixes.map((prefix) => `${prefix}(.*)`),
+);
 
-  if (!isProtectedRoute) {
-    return NextResponse.next();
+export const proxy = clerkMiddleware(async (auth, request) => {
+  if (isProtectedRoute(request)) {
+    await auth.protect();
   }
-
-  return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
