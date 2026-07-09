@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useClerk } from "@clerk/nextjs";
 import {
   Bell,
   Briefcase,
@@ -10,6 +11,7 @@ import {
   HelpCircle,
   Home,
   LineChart,
+  LogOut,
   Plus,
   Settings,
   Sparkles,
@@ -45,6 +47,13 @@ export default function AppLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { signOut } = useClerk();
+
+  async function handleSignOut() {
+    await signOut({ redirectUrl: "/sign-in" });
+    router.push("/sign-in");
+  }
 
   return (
     <div className="min-h-dvh bg-background text-on-background">
@@ -154,9 +163,15 @@ export default function AppLayout({
             >
               <Settings className="size-5" />
             </Link>
-            <div className="flex size-8 items-center justify-center rounded-full border border-border bg-surface-raised text-on-surface-variant">
-              <User className="size-4" />
-            </div>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              aria-label="Sign out"
+              title="Sign out (temp)"
+              className="flex size-8 cursor-pointer items-center justify-center rounded-full border border-border bg-surface-raised text-on-surface-variant transition-colors hover:border-destructive hover:text-destructive"
+            >
+              <LogOut className="size-4" />
+            </button>
           </div>
         </header>
 
