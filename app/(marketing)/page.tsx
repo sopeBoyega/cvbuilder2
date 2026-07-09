@@ -477,7 +477,7 @@ export default function Home() {
             <span className="font-heading text-lg font-semibold tracking-tight">Resume Builder</span>
           </div>
           <div className="flex items-center gap-4 text-sm font-medium">
-            <button className="text-[#9BA1A6] transition-colors hover:text-white" onClick={() => router.push("/login")}>
+            <button className="text-[#9BA1A6] transition-colors hover:text-white hover:cursor-pointer" onClick={() => router.push("/sign-in")}>
               Sign in
             </button>
             <GlassButton className="px-4 py-2" onClick={() => router.push(signUpPath(email))}>
