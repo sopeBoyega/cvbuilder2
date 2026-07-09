@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, type SubmitEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
 import { useSignUp } from "@clerk/nextjs/legacy";
 
 import { Logo } from "@/components/shell/logo";
@@ -14,6 +15,7 @@ type OAuthStrategy = "oauth_google" | "oauth_linkedin_oidc";
 export default function SignUpPage() {
   const router = useRouter();
   const { isLoaded, signUp, setActive } = useSignUp();
+  const { isLoaded: authLoaded, isSignedIn } = useAuth();
 
   const [step, setStep] = useState<"form" | "verify">("form");
   const [username, setUsername] = useState("");
@@ -25,6 +27,12 @@ export default function SignUpPage() {
   const [oauthPending, setOauthPending] = useState<OAuthStrategy | null>(null);
 
   const busy = isSubmitting || oauthPending !== null;
+
+  // Clerk runs in single-session mode: signing up while a session is live
+  // throws `session_exists`. Send them into the app instead.
+  useEffect(() => {
+    if (authLoaded && isSignedIn) router.replace("/dashboard");
+  }, [authLoaded, isSignedIn, router]);
 
   async function handleOAuth(strategy: OAuthStrategy) {
     if (!isLoaded) return;
@@ -59,10 +67,18 @@ export default function SignUpPage() {
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setStep("verify");
     } catch (err) {
-      const message =
-        (err as { errors?: { message?: string }[] })?.errors?.[0]?.message ??
-        "Couldn't create your account. Please try again.";
-      setError(message);
+      const clerkError = (
+        err as { errors?: { code?: string; message?: string }[] }
+      )?.errors?.[0];
+
+      if (clerkError?.code === "session_exists") {
+        router.replace("/dashboard");
+        return;
+      }
+
+      setError(
+        clerkError?.message ?? "Couldn't create your account. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, type SubmitEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
 import { useSignIn } from "@clerk/nextjs/legacy";
 import { ArrowRight, Lock, Mail } from "lucide-react";
 
@@ -15,12 +16,19 @@ type OAuthStrategy = "oauth_google" | "oauth_linkedin_oidc";
 export default function SignInPage() {
   const router = useRouter();
   const { isLoaded, signIn, setActive } = useSignIn();
+  const { isLoaded: authLoaded, isSignedIn } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [oauthPending, setOauthPending] = useState<OAuthStrategy | null>(null);
+
+  // Clerk runs in single-session mode: attempting a second sign-in while a
+  // session is live never returns "complete". Send them straight to the app.
+  useEffect(() => {
+    if (authLoaded && isSignedIn) router.replace("/dashboard");
+  }, [authLoaded, isSignedIn, router]);
 
   async function handleOAuth(strategy: OAuthStrategy) {
     if (!isLoaded) return;
@@ -50,17 +58,41 @@ export default function SignInPage() {
         strategy: "password",
       });
 
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        router.push("/dashboard");
-      } else {
-        setError("Additional verification is required for this account.");
+      switch (result.status) {
+        case "complete":
+          await setActive({ session: result.createdSessionId });
+          router.push("/dashboard");
+          break;
+        case "needs_new_password":
+          router.push("/reset-password");
+          break;
+        case "needs_second_factor":
+          setError(
+            "This account uses two-factor authentication, which isn't supported yet.",
+          );
+          break;
+        case "needs_first_factor":
+        case "needs_client_trust":
+          setError("Additional verification is required to finish signing in.");
+          break;
+        default:
+          setError("We couldn't complete sign-in. Please try again.");
       }
     } catch (err) {
-      const message =
-        (err as { errors?: { message?: string }[] })?.errors?.[0]?.message ??
-        "Couldn't sign in with those details. Please try again.";
-      setError(message);
+      const clerkError = (
+        err as { errors?: { code?: string; message?: string }[] }
+      )?.errors?.[0];
+
+      // Already signed in (single-session mode) — not an error worth showing.
+      if (clerkError?.code === "session_exists") {
+        router.replace("/dashboard");
+        return;
+      }
+
+      setError(
+        clerkError?.message ??
+          "Couldn't sign in with those details. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
