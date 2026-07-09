@@ -5,6 +5,9 @@ const EnvSchema = z.object({
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
   CLERK_SECRET_KEY: z.string().min(1),
   CLERK_WEBHOOK_SIGNING_SECRET: z.string().min(1).optional(),
+  // Optional at boot so the app/CI/build still start without it. The AI
+  // features (resume structuring) assert its presence at point of use.
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1).optional(),
 });
 
 export const env = EnvSchema.parse({
@@ -12,4 +15,5 @@ export const env = EnvSchema.parse({
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
   CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
   CLERK_WEBHOOK_SIGNING_SECRET: process.env.CLERK_WEBHOOK_SIGNING_SECRET,
+  GOOGLE_GENERATIVE_AI_API_KEY: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 });

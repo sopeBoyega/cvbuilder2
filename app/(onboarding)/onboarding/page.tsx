@@ -10,6 +10,8 @@ import {
   UploadCloud,
 } from "lucide-react";
 
+import { ResumeImport } from "@/components/onboarding/resume-import";
+
 type StartOption = "linkedin" | "upload" | "scratch";
 
 export default function OnboardingPage() {
@@ -178,27 +180,27 @@ export default function OnboardingPage() {
         </button>
       </div>
 
-      <div className="w-full max-w-sm">
-        <button
-          type="button"
-          disabled={!selected}
-          onClick={() => {
-            if (selected) router.push("/onboarding/profile");
-          }}
-          className={
-            selected === "linkedin"
-              ? "flex w-full items-center justify-center gap-2 rounded-[8px] bg-indigo-hi px-6 py-4 text-lg font-semibold leading-[1.3] text-surface-container-lowest shadow-[0_0_20px_-5px_#949AFF] transition-all hover:scale-[1.02]"
-              : selected === "upload"
-                ? "flex w-full items-center justify-center gap-2 rounded-[8px] bg-coral-hi px-6 py-4 text-lg font-semibold leading-[1.3] text-surface-container-lowest shadow-[0_0_20px_-5px_#FFA38D] transition-all hover:scale-[1.02]"
-                : selected === "scratch"
-                  ? "flex w-full items-center justify-center gap-2 rounded-[8px] bg-primary px-6 py-4 text-lg font-semibold leading-[1.3] text-on-primary shadow-[0_0_20px_-5px_#5bc06b] transition-all hover:scale-[1.02]"
-                  : "flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-[8px] border border-border bg-surface px-6 py-4 text-lg font-semibold leading-[1.3] text-on-surface-variant opacity-50"
-          }
-        >
-          Continue
-          <ArrowRight className="size-5" />
-        </button>
-      </div>
+      {selected === "upload" || selected === "linkedin" ? (
+        <ResumeImport source={selected} />
+      ) : (
+        <div className="w-full max-w-sm">
+          <button
+            type="button"
+            disabled={!selected}
+            onClick={() => {
+              if (selected === "scratch") router.push("/onboarding/profile");
+            }}
+            className={
+              selected === "scratch"
+                ? "flex w-full items-center justify-center gap-2 rounded-[8px] bg-primary px-6 py-4 text-lg font-semibold leading-[1.3] text-on-primary shadow-[0_0_20px_-5px_#5bc06b] transition-all hover:scale-[1.02]"
+                : "flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-[8px] border border-border bg-surface px-6 py-4 text-lg font-semibold leading-[1.3] text-on-surface-variant opacity-50"
+            }
+          >
+            Continue
+            <ArrowRight className="size-5" />
+          </button>
+        </div>
+      )}
     </main>
   );
 }
