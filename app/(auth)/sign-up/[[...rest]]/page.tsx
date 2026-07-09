@@ -16,6 +16,7 @@ export default function SignUpPage() {
   const { isLoaded, signUp, setActive } = useSignUp();
 
   const [step, setStep] = useState<"form" | "verify">("form");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -47,7 +48,7 @@ export default function SignUpPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      const result = await signUp.create({ emailAddress: email, password });
+      const result = await signUp.create({ emailAddress: email, password, username });
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
@@ -187,6 +188,24 @@ export default function SignUpPage() {
                 </div>
 
                 <form className="flex flex-col gap-4" onSubmit={handleCreate}>
+                  <div>
+                    <label
+                      htmlFor="username"
+                      className="mb-1 block text-xs font-medium uppercase leading-[1.15] tracking-[0.06em] text-on-surface-variant"
+                    >
+                      Username
+                    </label>
+                    <input
+                      id="username"
+                      type="text"
+                      required
+                      autoComplete="username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="ada_lovelace"
+                      className="w-full rounded-[8px] border border-border bg-surface-raised px-4 py-3 text-sm leading-5 text-on-surface placeholder:text-on-surface-variant/50 outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/60"
+                    />
+                  </div>
                   <div>
                     <label
                       htmlFor="email"
