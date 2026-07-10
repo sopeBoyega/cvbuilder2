@@ -5,17 +5,23 @@ import { useRouter } from "next/navigation";
 
 import { AnalysisStep } from "@/components/wizard/analysis-step";
 import { JobStep } from "@/components/wizard/job-step";
-import { ResumeStep, type ResumeOption } from "@/components/wizard/resume-step";
-import { StepIndicator } from "@/components/wizard/step-indicator";
+import {
+  ResumeStep,
+  type JobOption,
+  type ResumeOption,
+} from "@/components/wizard/resume-step";
+import { StepRail } from "@/components/wizard/step-rail";
 import { useWizard, useWizardHydrated } from "@/lib/stores/wizard";
 import type { WizardStep } from "@/lib/validation/wizard";
 
 export function TailorWizard({
   step,
   resumes,
+  jobs,
 }: {
   step: WizardStep;
   resumes: ResumeOption[];
+  jobs: JobOption[];
 }) {
   const router = useRouter();
   const hydrated = useWizardHydrated();
@@ -27,18 +33,25 @@ export function TailorWizard({
     setWizard({ step });
   }, [step, setWizard]);
 
-  // You can't pick a resume before you've described the job. Wait for
-  // rehydration first, or a refresh on /tailor/resume would bounce to /tailor.
+  // You can't pick a resume before describing the job. Wait for rehydration
+  // first, or a refresh on /tailor/resume would bounce back to /tailor.
   useEffect(() => {
     if (hydrated && step === "resume" && !jobId) router.replace("/tailor");
   }, [hydrated, step, jobId, router]);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-10 p-4 md:p-8">
-      <StepIndicator current={step} />
-      {step === "job" ? <JobStep /> : null}
-      {step === "resume" ? <ResumeStep resumes={resumes} /> : null}
-      {step === "analysis" ? <AnalysisStep /> : null}
+    <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 p-4 md:grid-cols-12 md:p-8">
+      <aside className="md:col-span-3">
+        <div className="md:sticky md:top-28">
+          <StepRail current={step} />
+        </div>
+      </aside>
+
+      <div className="md:col-span-9">
+        {step === "job" ? <JobStep /> : null}
+        {step === "resume" ? <ResumeStep resumes={resumes} jobs={jobs} /> : null}
+        {step === "analysis" ? <AnalysisStep /> : null}
+      </div>
     </div>
   );
 }
