@@ -31,7 +31,9 @@ export async function embedText(
     },
   });
 
-  return { embedding, tokens: usage?.tokens };
+  // Google's embedding model reports no usage, which the SDK surfaces as NaN.
+  const tokens = Number.isFinite(usage?.tokens) ? usage.tokens : undefined;
+  return { embedding, tokens };
 }
 
 /**
