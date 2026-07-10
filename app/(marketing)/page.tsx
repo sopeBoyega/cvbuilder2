@@ -5,7 +5,6 @@ import {
   BriefcaseBusiness,
   Check,
   ChevronRight,
-  FileCheck2,
   FileText,
   Gauge,
   Globe,
@@ -18,6 +17,9 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
+import { Logo } from "@/components/shell/logo";
+import { BRAND } from "@/lib/brand";
 
 const footerColumns = [
   ["Features", "Pricing", "ATS Checker", "Templates", "Chrome Extension"],
@@ -216,7 +218,7 @@ function MobileFrame({ active, title, subtitle }: { active: 1 | 2 | 3; title: st
         </div>
         <div className="h-[500px] overflow-hidden p-4 pt-8">
           <div className="mb-6 text-center">
-            <div className="font-heading text-sm font-medium text-white">Resume Builder</div>
+            <div className="font-heading text-sm font-medium text-white">{BRAND.name}</div>
             <div className="text-[10px] text-[#9BA1A6]">Tailor before you apply</div>
           </div>
           <div className="relative mb-8 flex items-center justify-between px-2">
@@ -471,10 +473,10 @@ export default function Home() {
       <nav className="fixed top-0 z-50 w-full border-b border-[#242C3D] bg-[#161C2A]/60 py-4 backdrop-blur-xl transition-all duration-300">
         <div className="container mx-auto flex max-w-7xl items-center justify-between px-6">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#7C82F0]/30 bg-[#7C82F0]/20 text-[#7C82F0]">
-              <FileCheck2 className="h-4 w-4" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#5BC06B]/30 bg-[#5BC06B]/10 text-[#5BC06B]">
+              <Logo className="h-5 w-5" />
             </div>
-            <span className="font-heading text-lg font-semibold tracking-tight">Resume Builder</span>
+            <span className="font-heading text-lg font-semibold tracking-tight">{BRAND.name}</span>
           </div>
           <div className="flex items-center gap-4 text-sm font-medium">
             <button className="text-[#9BA1A6] transition-colors hover:text-white hover:cursor-pointer" onClick={() => router.push("/sign-in")}>
@@ -504,7 +506,7 @@ export default function Home() {
                   <Sparkles className="h-3 w-3 text-[#0D1017]" />
                 </div>
                 <span className="font-mono text-xs text-[#9BA1A6]">
-                  Resume Builder Hub: tailor each application before you apply
+                  {BRAND.name} Hub: tailor each application before you apply
                 </span>
               </div>
               <h1 className="mb-6 font-heading text-5xl font-bold leading-tight tracking-tight md:text-7xl">
@@ -548,7 +550,7 @@ export default function Home() {
           intro="Capture the role, upload your resume, and get focused next steps"
           link="Check your resume's ATS score"
           panelCopy="turns a job description into a simple workflow: capture the role, upload your resume, review keyword gaps, and apply with confidence."
-          panelTitle="Resume Builder"
+          panelTitle={BRAND.name}
           statCopy="from job description to resume feedback, match score, and ready-to-apply next actions."
           statValue="3 steps"
           title="Simplicity"
@@ -577,7 +579,7 @@ export default function Home() {
           intro="AI ATS optimization compares your resume against the real job description"
           link="Run the free ATS checker"
           panelCopy="finds missing keywords, weak bullets, and unclear impact, then gives role-specific rewrite prompts before you submit."
-          panelTitle="Resume Builder's AI"
+          panelTitle={`${BRAND.name}'s AI`}
           statCopy="sample match score after adding relevant keywords and clarifying role-specific achievements."
           statValue="89"
           title="Intelligence"
@@ -607,10 +609,10 @@ export default function Home() {
         <div className="container mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.4fr_repeat(4,0.7fr)]">
           <div>
             <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#7C82F0]/30 bg-[#7C82F0]/20 text-[#7C82F0]">
-                <FileCheck2 className="h-4 w-4" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#5BC06B]/30 bg-[#5BC06B]/10 text-[#5BC06B]">
+                <Logo className="h-5 w-5" />
               </div>
-              <span className="font-heading text-lg font-semibold tracking-tight">Resume Builder</span>
+              <span className="font-heading text-lg font-semibold tracking-tight">{BRAND.name}</span>
             </div>
             <p className="max-w-sm text-sm leading-relaxed text-[#9BA1A6]">
               Tailor resumes, improve ATS match, track applications, generate cover letters, and prepare for interviews.
@@ -630,7 +632,7 @@ export default function Home() {
           ))}
         </div>
         <div className="container mx-auto mt-12 flex max-w-7xl flex-wrap gap-4 border-t border-[#242C3D] pt-6 font-mono text-xs text-[#9BA1A6]">
-          <p>(c) 2026 Resume Builder, Inc.</p>
+          <p>(c) 2026 {BRAND.legalName}</p>
           <p>Terms</p>
           <p>Privacy (Updated 01/2026)</p>
         </div>

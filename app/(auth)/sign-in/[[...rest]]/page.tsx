@@ -10,6 +10,7 @@ import { ArrowRight, Lock, Mail } from "lucide-react";
 import { GoogleIcon, LinkedInIcon } from "@/components/auth/oauth-icons";
 import { PasswordField } from "@/components/auth/password-field";
 import { Logo } from "@/components/shell/logo";
+import { BRAND } from "@/lib/brand";
 
 type OAuthStrategy = "oauth_google" | "oauth_linkedin_oidc";
 
@@ -115,7 +116,7 @@ export default function SignInPage() {
         <header className="mb-10 text-center">
           <h1 className="flex items-center justify-center gap-3 font-heading text-[30px] font-bold leading-[1.15] tracking-tight text-primary-fixed md:text-[40px]">
             <Logo className="size-8 text-primary" />
-            CVBuilder
+            {BRAND.name}
           </h1>
           <p className="mt-3 text-base leading-6 text-on-surface-variant">
             Initialize your professional trajectory.

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { Logo } from "@/components/shell/logo";
+import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_NAV = [
@@ -63,11 +64,11 @@ export default function AppLayout({
           <div className="flex items-center gap-2">
             <Logo className="size-6" />
             <h1 className="font-heading text-2xl font-bold tracking-tight text-primary">
-              CVBuilder
+              {BRAND.name}
             </h1>
           </div>
           <p className="mt-1 text-xs text-on-surface-variant/70">
-            AI Resume Tailoring
+            {BRAND.tagline}
           </p>
         </div>
 
