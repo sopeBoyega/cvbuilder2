@@ -2,12 +2,13 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Check, Loader2, Plus, Save, Trash2, X } from "lucide-react";
+import { AlertCircle, Check, Loader2, Plus, Save, Trash2 } from "lucide-react";
 
 import { ScoreRing } from "@/components/score-ring";
 import { saveResumeContent } from "@/lib/actions/resume";
 import { saveTailoredResume } from "@/lib/actions/tailor";
 import { analyzeResume } from "@/lib/ats";
+import type { GapAnswer } from "@/lib/validation/ai";
 import { ResumeContent, type WorkEntry } from "@/lib/validation/resume";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,8 @@ export function ResumeEditor({
   /** When present the editor scores against the job and shows keyword coverage. */
   jobId,
   jobDescription,
+  /** Answers from the AI-questions step, insertable straight into the resume. */
+  notes,
   /** Lets the wizard take over navigation after a tailored save. */
   onTailoredSaved,
 }: {
@@ -40,6 +43,7 @@ export function ResumeEditor({
   initial: ResumeContent;
   jobId?: string;
   jobDescription?: string;
+  notes?: GapAnswer[];
   onTailoredSaved?: (versionId: string, score: number) => void;
 }) {
   const router = useRouter();
@@ -70,6 +74,33 @@ export function ResumeEditor({
       ...current,
       work: current.work.map((entry, i) =>
         i === index ? { ...entry, ...changes } : entry,
+      ),
+    }));
+  }
+
+  /** One-click add of a missing keyword to the skills list (no retyping). */
+  function addSkill(term: string) {
+    const current = parseSkills(skillsText);
+    if (current.some((skill) => skill.toLowerCase() === term.toLowerCase())) {
+      return;
+    }
+    const next = [...current, term];
+    setSkillsText(next.join(", "));
+    patch({ skills: next });
+  }
+
+  function appendToSummary(text: string) {
+    setDraft((current) => ({
+      ...current,
+      summary: current.summary ? `${current.summary.trim()} ${text}` : text,
+    }));
+  }
+
+  function addBulletToRole(index: number, text: string) {
+    setDraft((current) => ({
+      ...current,
+      work: current.work.map((entry, i) =>
+        i === index ? { ...entry, bullets: [...entry.bullets, text] } : entry,
       ),
     }));
   }
@@ -179,19 +210,21 @@ export function ResumeEditor({
           ) : (
             <>
               <p className="mb-3 text-xs text-on-surface-variant">
-                Work these into your bullets where they&apos;re truthful. They
-                tick over to green as you type — never add a skill you
-                don&apos;t have.
+                Click a keyword to add it to your skills — only where it&apos;s
+                truthful. It turns green once it appears in your resume.
               </p>
               <div className="flex flex-wrap gap-2">
                 {analysis.missing.map((term) => (
-                  <span
+                  <button
                     key={term}
-                    className="inline-flex items-center gap-1.5 rounded border border-coral-hi/20 bg-coral-hi/10 px-2 py-0.5 font-mono text-xs text-coral-hi"
+                    type="button"
+                    onClick={() => addSkill(term)}
+                    title={`Add "${term}" to skills`}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded border border-coral-hi/20 bg-coral-hi/10 px-2 py-0.5 font-mono text-xs text-coral-hi transition-colors hover:border-coral-hi hover:bg-coral-hi/20"
                   >
-                    <X className="size-3" />
+                    <Plus className="size-3" />
                     {term}
-                  </span>
+                  </button>
                 ))}
               </div>
             </>
@@ -211,6 +244,53 @@ export function ResumeEditor({
             </div>
           ) : null}
         </section>
+      ) : null}
+
+      {/* Notes from the AI questions — click to drop straight into the resume */}
+      {notes && notes.length > 0 ? (
+        <Section title="Notes from the AI questions">
+          <p className="mb-4 text-xs text-on-surface-variant">
+            Add a note straight into your resume, then edit it to be true. The
+            score updates as you do.
+          </p>
+          <div className="space-y-4">
+            {notes.map((note) => (
+              <div
+                key={note.question}
+                className="rounded-lg border border-border bg-surface-container-low p-4"
+              >
+                <p className="text-sm font-semibold text-on-surface">
+                  {note.question}
+                </p>
+                <p className="mt-1 text-sm text-on-surface-variant">
+                  {note.answer}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="text-xs uppercase tracking-wider text-on-surface-variant">
+                    Add to
+                  </span>
+                  {draft.work.map((role, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => addBulletToRole(index, note.answer)}
+                      className="cursor-pointer rounded border border-border bg-surface px-2 py-1 text-xs text-on-surface transition-colors hover:border-primary hover:text-primary"
+                    >
+                      {role.role || role.company || `Role ${index + 1}`}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => appendToSummary(note.answer)}
+                    className="cursor-pointer rounded border border-border bg-surface px-2 py-1 text-xs text-on-surface transition-colors hover:border-primary hover:text-primary"
+                  >
+                    Summary
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
       ) : null}
 
       {error ? (
