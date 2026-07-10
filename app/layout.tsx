@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
+import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({
@@ -20,9 +21,11 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Resume Builder",
-  description:
-    "Tailor your resume to a job description, check your ATS score, and prepare stronger applications.",
+  title: {
+    default: BRAND.name,
+    template: `%s · ${BRAND.name}`,
+  },
+  description: BRAND.description,
 };
 
 export default function RootLayout({

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, ChevronDown, MapPin, Search } from "lucide-react";
 
 import { Logo } from "@/components/shell/logo";
+import { BRAND } from "@/lib/brand";
 
 type ExperienceLevel = "student" | "mid" | "senior" | "exec";
 
@@ -27,7 +28,7 @@ export default function OnboardingProfilePage() {
       <header className="fixed left-1/2 top-0 z-50 flex h-16 w-full max-w-[1440px] -translate-x-1/2 items-center justify-between px-4 md:px-8">
         <div className="flex items-center gap-2 font-heading text-[30px] font-bold tracking-tight text-primary">
           <Logo className="size-6" />
-          CVBuilder
+          {BRAND.name}
         </div>
         <div className="text-xs font-medium uppercase leading-[1.15] tracking-[0.06em] text-on-surface-variant">
           Step 2 of 3

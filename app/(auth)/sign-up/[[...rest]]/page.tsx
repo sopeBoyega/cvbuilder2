@@ -7,6 +7,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useSignUp } from "@clerk/nextjs/legacy";
 
 import { Logo } from "@/components/shell/logo";
+import { BRAND } from "@/lib/brand";
 import { GoogleIcon, LinkedInIcon } from "@/components/auth/oauth-icons";
 import { PasswordField } from "@/components/auth/password-field";
 
@@ -130,7 +131,7 @@ export default function SignUpPage() {
           <div className="flex items-center gap-2">
             <Logo className="size-8" />
             <h1 className="font-heading text-[40px] font-bold leading-[1.15] tracking-tight text-primary">
-              CVBuilder
+              {BRAND.name}
             </h1>
           </div>
 
@@ -154,7 +155,7 @@ export default function SignUpPage() {
             <div className="mb-6 flex items-center justify-center gap-2 md:hidden">
               <Logo className="size-7" />
               <h1 className="font-heading text-[30px] font-bold leading-[1.15] tracking-tight text-primary">
-                CVBuilder
+                {BRAND.name}
               </h1>
             </div>
 

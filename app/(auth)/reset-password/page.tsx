@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, KeyRound } from "lucide-react";
 
 import { Logo } from "@/components/shell/logo";
 import { PasswordField } from "@/components/auth/password-field";
+import { BRAND } from "@/lib/brand";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -115,7 +116,7 @@ export default function ResetPasswordPage() {
           <div className="mb-8 flex items-center justify-center gap-2">
             <Logo className="size-6" />
             <span className="font-heading text-[26px] font-bold leading-[1.15] tracking-tight text-primary md:text-[30px]">
-              CVBuilder
+              {BRAND.name}
             </span>
           </div>
 
