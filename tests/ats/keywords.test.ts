@@ -66,6 +66,31 @@ describe("extractJobKeywords", () => {
     expect(terms).not.toContain("5");
   });
 
+  it("never surfaces prepositions or copulas as keywords", () => {
+    // Regression: these leaked into production as "matched keywords" because
+    // tokenize only drops 1-character tokens, so "in"/"on"/"of"/"to" survived.
+    const jd = `Google is looking for a Senior Product Manager to lead our Core
+      Search Infrastructure. You will be responsible for roadmapping complex
+      systems using Agile methodologies. You will work closely with engineering
+      teams to optimize query latency in production and report on results.`;
+
+    const terms = extractJobKeywords(jd).map((k) => k.term);
+
+    for (const noise of ["in", "on", "of", "to", "is", "be", "as", "by", "or"]) {
+      expect(terms, `"${noise}" must not be a keyword`).not.toContain(noise);
+    }
+    // ...while the real signal survives.
+    expect(terms).toContain("agile");
+  });
+
+  it("excludes stopwords from bigrams too", () => {
+    const terms = extractJobKeywords(
+      "report on results. report on results.",
+    ).map((k) => k.term);
+    expect(terms).not.toContain("report on");
+    expect(terms).not.toContain("on results");
+  });
+
   it("keeps known multi-word skills as one phrase", () => {
     const terms = extractJobKeywords("Experience with machine learning.").map(
       (k) => k.term,

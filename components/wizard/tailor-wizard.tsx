@@ -40,7 +40,7 @@ export function TailorWizard({
   }, [hydrated, step, jobId, router]);
 
   return (
-    <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 p-4 md:grid-cols-12 md:p-8">
+    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-4 py-8 md:grid-cols-12 md:px-8 md:py-12">
       <aside className="md:col-span-3">
         <div className="md:sticky md:top-28">
           <StepRail current={step} />
