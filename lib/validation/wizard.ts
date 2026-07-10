@@ -20,9 +20,12 @@ export type AnyWizardStep = (typeof ALL_WIZARD_STEPS)[number];
 /**
  * The steps that actually exist. The rail renders all six so the user can see
  * the whole journey, but only these are routable — the rest render as locked.
- * Steps 4-6 (AI questions, live editor, finalize/export) land in Phase 2.
+ *
+ * `questions` (AI gap questions) needs an LLM and lands in Phase 2; the
+ * analysis screen's "Skip to editor" path deliberately jumps over it, so
+ * `edit` is reachable without it. `finalize` (PDF export) is next up.
  */
-export const WIZARD_STEPS = ["job", "resume", "analysis"] as const;
+export const WIZARD_STEPS = ["job", "resume", "analysis", "edit"] as const;
 export type WizardStep = (typeof WIZARD_STEPS)[number];
 
 export function isWizardStep(value: string): value is WizardStep {
@@ -42,7 +45,7 @@ export const STEP_META: Record<
   analysis: { title: "Analysis", caption: "Deterministic ATS scan" },
   questions: { title: "AI questions", caption: "Close the gaps" },
   edit: { title: "Editor", caption: "Rewrite and re-score" },
-  finalize: { title: "Finalize", caption: "Export ATS-safe" },
+  finalize: { title: "Finalize", caption: "Export ATS-safe PDF" },
 };
 
 export const WizardState = z.object({
