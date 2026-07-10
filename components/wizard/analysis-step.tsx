@@ -110,15 +110,20 @@ export function AnalysisStep() {
         <div className="w-full flex-1 space-y-4">
           {signals.map(({ key, signal }) => (
             <div key={key}>
-              <div className="mb-1 flex items-baseline justify-between text-sm">
+              <div className="mb-1 flex items-baseline justify-between gap-4 text-sm">
                 <span className="text-on-surface">{SIGNAL_LABELS[key]}</span>
-                <span className="font-mono text-xs text-on-surface-variant">
-                  {signal === null
-                    ? key === "semantic"
-                      ? "Coming in Phase 2"
-                      : "Not applicable"
-                    : `${signal.score} · ${Math.round(signal.weight * 100)}% of total`}
-                </span>
+                {signal === null ? (
+                  <span className="font-mono text-xs text-on-surface-variant">
+                    {key === "semantic" ? "Coming in Phase 2" : "Not applicable"}
+                  </span>
+                ) : (
+                  <span className="flex items-baseline gap-2 font-mono text-xs">
+                    <span className="text-on-surface">{signal.score}/100</span>
+                    <span className="text-on-surface-variant">
+                      ×{Math.round(signal.weight * 100)}% weight
+                    </span>
+                  </span>
+                )}
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container-highest">
                 <div

@@ -8,7 +8,6 @@ import {
   useTransition,
   type SubmitEvent,
 } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle,
@@ -21,7 +20,6 @@ import {
   Radar,
   Upload,
   UserRound,
-  X,
 } from "lucide-react";
 
 import { createJob, extractJobDescriptionFromFile } from "@/lib/actions/tailor";
@@ -257,14 +255,7 @@ export function JobStep() {
       ) : null}
 
       {/* Actions */}
-      <div className="flex items-center justify-between">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-2 px-6 py-3 text-sm text-on-surface-variant transition-all hover:text-on-surface"
-        >
-          <X className="size-4" />
-          Cancel
-        </Link>
+      <div className="flex items-center justify-end">
         <button
           type="submit"
           disabled={pending || extracting}
