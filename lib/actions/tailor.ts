@@ -1,0 +1,140 @@
+"use server";
+
+import { auth } from "@clerk/nextjs/server";
+import { and, desc, eq } from "drizzle-orm";
+import { z } from "zod";
+
+import { analyzeResume } from "@/lib/ats";
+import { db } from "@/lib/db";
+import {
+  analyses,
+  jobs,
+  profiles,
+  resumeVersions,
+  resumes,
+} from "@/lib/db/schema";
+import { AtsAnalysis } from "@/lib/validation/ats";
+import { JobInput } from "@/lib/validation/job";
+import { ResumeContent } from "@/lib/validation/resume";
+
+async function requireProfile() {
+  const { userId } = await auth();
+  if (!userId) return null;
+
+  const [profile] = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.clerkUserId, userId))
+    .limit(1);
+
+  return profile ?? null;
+}
+
+export type CreateJobState =
+  | { ok: true; jobId: string }
+  | { ok: false; error: string };
+
+/** Wizard step 1: persist the pasted job description. */
+export async function createJob(input: unknown): Promise<CreateJobState> {
+  const profile = await requireProfile();
+  if (!profile) return { ok: false, error: "You need to be signed in." };
+
+  // Never trust the client.
+  const parsed = JobInput.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Check the job details.",
+    };
+  }
+  const { title, company, description, url } = parsed.data;
+
+  const [job] = await db
+    .insert(jobs)
+    .values({
+      profileId: profile.id,
+      title,
+      company: company || null,
+      description,
+      url: url || null,
+    })
+    .returning();
+
+  return { ok: true, jobId: job.id };
+}
+
+const AnalyzeInput = z.object({
+  jobId: z.uuid(),
+  resumeId: z.uuid(),
+});
+
+export type RunAnalysisState =
+  | { ok: true; analysis: AtsAnalysis; jobTitle: string; resumeTitle: string }
+  | { ok: false; error: string };
+
+/**
+ * Wizard step 3: score the resume's latest version against the job and record
+ * the result. Both ids are re-checked against the caller's profile — a client
+ * could otherwise hand us someone else's resume or job id.
+ */
+export async function runAnalysis(input: unknown): Promise<RunAnalysisState> {
+  const profile = await requireProfile();
+  if (!profile) return { ok: false, error: "You need to be signed in." };
+
+  const parsed = AnalyzeInput.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: "Pick a job and a resume first." };
+  }
+  const { jobId, resumeId } = parsed.data;
+
+  const [job] = await db
+    .select()
+    .from(jobs)
+    .where(and(eq(jobs.id, jobId), eq(jobs.profileId, profile.id)))
+    .limit(1);
+  if (!job) return { ok: false, error: "That job could not be found." };
+
+  const [resume] = await db
+    .select()
+    .from(resumes)
+    .where(and(eq(resumes.id, resumeId), eq(resumes.profileId, profile.id)))
+    .limit(1);
+  if (!resume) return { ok: false, error: "That resume could not be found." };
+
+  const [version] = await db
+    .select()
+    .from(resumeVersions)
+    .where(eq(resumeVersions.resumeId, resume.id))
+    .orderBy(desc(resumeVersions.createdAt))
+    .limit(1);
+  if (!version) {
+    return { ok: false, error: "That resume has no content to analyze yet." };
+  }
+
+  const content = ResumeContent.safeParse(version.content);
+  if (!content.success) {
+    return { ok: false, error: "This resume's content could not be read." };
+  }
+
+  const analysis = analyzeResume({
+    content: content.data,
+    jobDescription: job.description,
+  });
+
+  await db.insert(analyses).values({
+    resumeVersionId: version.id,
+    jobId: job.id,
+    atsScore: analysis.score,
+    matched: analysis.matched,
+    missing: analysis.missing,
+    flags: analysis.flags,
+    breakdown: analysis.breakdown,
+  });
+
+  return {
+    ok: true,
+    analysis,
+    jobTitle: job.company ? `${job.title} · ${job.company}` : job.title,
+    resumeTitle: resume.title,
+  };
+}

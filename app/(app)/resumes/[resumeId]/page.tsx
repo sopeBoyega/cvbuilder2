@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { and, desc, eq } from "drizzle-orm";
-import { ArrowLeft, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowLeft, Mail, MapPin, Phone, SquarePen } from "lucide-react";
 
 import { db } from "@/lib/db";
 import { profiles, resumeVersions, resumes } from "@/lib/db/schema";
@@ -57,11 +57,21 @@ export default async function ResumeEditorPage({
           <ArrowLeft className="size-4" />
           Resumes
         </Link>
-        {version ? (
-          <span className="rounded-full border border-border bg-surface px-3 py-1 text-xs uppercase tracking-wider text-on-surface-variant">
-            Parsed from {version.source}
-          </span>
-        ) : null}
+        <div className="flex items-center gap-3">
+          {version ? (
+            <span className="rounded-full border border-border bg-surface px-3 py-1 text-xs uppercase tracking-wider text-on-surface-variant">
+              {version.source === "edit" ? "Edited" : `Parsed from ${version.source}`}
+              {version.atsScore !== null ? ` · ATS ${version.atsScore}` : ""}
+            </span>
+          ) : null}
+          <Link
+            href={`/resumes/${resume.id}/edit`}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition-all hover:brightness-110"
+          >
+            <SquarePen className="size-4" />
+            Edit
+          </Link>
+        </div>
       </div>
 
       {content ? (
