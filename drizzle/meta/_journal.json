@@ -22,6 +22,20 @@
       "when": 1783643479736,
       "tag": "0002_same_gorilla_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783705136236,
+      "tag": "0003_gray_swarm",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783708332139,
+      "tag": "0004_futuristic_quasar",
+      "breakpoints": true
     }
   ]
 }

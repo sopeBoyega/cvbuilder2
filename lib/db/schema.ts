@@ -6,7 +6,16 @@ import {
   text,
   timestamp,
   uuid,
+  vector,
 } from "drizzle-orm/pg-core";
+
+/**
+ * Embedding width. `gemini-embedding-001` is requested at 768 dimensions
+ * (`outputDimensionality`) — small, cheap, and under pgvector's 2000-dim HNSW
+ * index ceiling (its native 3072 can't be indexed). Changing the model or this
+ * number is a migration.
+ */
+export const EMBEDDING_DIMENSIONS = 768;
 
 export const profiles = pgTable("profiles", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -57,6 +66,11 @@ export const resumeVersions = pgTable("resume_versions", {
    * Null until scored.
    */
   atsScore: integer("ats_score"),
+  /**
+   * Semantic embedding of this version's text, for JD↔resume cosine similarity.
+   * Null until embedded (computed asynchronously, and absent on older rows).
+   */
+  embedding: vector("embedding", { dimensions: EMBEDDING_DIMENSIONS }),
   /** Set when this version is a variant tailored to a specific job. */
   tailoredForJobId: uuid("tailored_for_job_id").references(() => jobs.id, {
     onDelete: "set null",
@@ -75,6 +89,8 @@ export const jobs = pgTable("jobs", {
   company: text("company"),
   description: text("description").notNull(),
   url: text("url"),
+  /** Semantic embedding of the job description. Null until embedded. */
+  embedding: vector("embedding", { dimensions: EMBEDDING_DIMENSIONS }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -98,6 +114,27 @@ export const analyses = pgTable("analyses", {
   missing: jsonb("missing").notNull(),
   flags: jsonb("flags").notNull(),
   breakdown: jsonb("breakdown").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+/**
+ * One row per AI generation call, for per-plan quota enforcement and cost
+ * tracking. On a metered free LLM tier this is also our rate limiter: instead
+ * of Redis, we count recent rows for a profile (see `lib/ai/usage.ts`).
+ *
+ * `kind` names the operation ("gap_questions", "bullet_rewrite", …).
+ */
+export const aiGenerations = pgTable("ai_generations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  profileId: uuid("profile_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  kind: text("kind").notNull(),
+  model: text("model").notNull(),
+  inputTokens: integer("input_tokens"),
+  outputTokens: integer("output_tokens"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

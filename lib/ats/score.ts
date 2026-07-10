@@ -26,12 +26,20 @@ export type AnalyzeOptions = {
   /** Omit to score the resume on its own merits (no keyword signal). */
   jobDescription?: string;
   keywordLimit?: number;
+  /**
+   * Precomputed 0–100 semantic-similarity signal from embeddings. Omitted by
+   * the synchronous callers (the browser live-score path can't embed); the
+   * server passes it in `runAnalysis`/`saveTailoredResume`, and the weights
+   * renormalize to include it automatically.
+   */
+  semanticScore?: number;
 };
 
 export function analyzeResume({
   content,
   jobDescription,
   keywordLimit = MAX_KEYWORDS,
+  semanticScore,
 }: AnalyzeOptions): AtsAnalysis {
   const resumeText = resumeToText(content);
 
@@ -48,7 +56,7 @@ export function analyzeResume({
     formatting: formatting.score,
   };
   if (keywordMatch.score !== null) available.keyword = keywordMatch.score;
-  // `semantic` stays absent until Phase 2 adds embeddings.
+  if (semanticScore !== undefined) available.semantic = semanticScore;
 
   const effective = renormalize(available);
 

@@ -213,21 +213,20 @@ export function AnalysisStep() {
 
       {/* Actions */}
       <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-        <button
-          type="button"
-          disabled
-          title="AI gap questions arrive in Phase 2. Continue to the editor to close gaps yourself."
-          className="flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-lg bg-indigo px-8 py-4 font-bold text-white opacity-40 sm:w-auto"
+        <Link
+          href="/tailor/questions"
+          onClick={() => setWizard({ step: "questions" })}
+          className="flex w-full items-center justify-center gap-3 rounded-lg bg-indigo px-8 py-4 font-bold text-white shadow-lg shadow-indigo/40 transition-all hover:opacity-90 active:scale-95 sm:w-auto"
         >
           <Sparkles className="size-5" />
           Improve with AI
-        </button>
+        </Link>
         <Link
           href="/tailor/edit"
           onClick={() => setWizard({ step: "edit" })}
           className="flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-surface px-8 py-4 font-bold text-on-surface transition-all hover:border-primary hover:text-primary sm:w-auto"
         >
-          Continue to editor
+          Skip to editor
           <ArrowRight className="size-5" />
         </Link>
       </div>
@@ -258,7 +257,7 @@ function ScoreBreakdown({ analysis }: { analysis: AtsAnalysis }) {
             <span className="text-on-surface">{SIGNAL_LABELS[key]}</span>
             {signal === null ? (
               <span className="font-mono text-xs text-on-surface-variant">
-                {key === "semantic" ? "Coming in Phase 2" : "Not applicable"}
+                {key === "semantic" ? "Not available" : "Not applicable"}
               </span>
             ) : (
               <span className="flex items-baseline gap-2 font-mono text-xs">

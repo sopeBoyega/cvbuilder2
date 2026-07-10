@@ -10,4 +10,11 @@ import { google } from "@ai-sdk/google";
  */
 export const models = {
   extract: google("gemini-2.5-flash"),
+  embed: google.embedding("gemini-embedding-001"),
+} as const;
+
+/** Model id strings, for `ai_generations` cost logging. */
+export const MODEL_IDS = {
+  extract: "gemini-2.5-flash",
+  embed: "gemini-embedding-001",
 } as const;

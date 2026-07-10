@@ -17,6 +17,9 @@ function initialState(): WizardState {
     step: "job",
     jobId: null,
     resumeId: null,
+    tailoredVersionId: null,
+    tailoredScore: null,
+    answers: [],
   };
 }
 

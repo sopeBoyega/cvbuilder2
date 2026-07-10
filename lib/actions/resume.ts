@@ -6,7 +6,9 @@ import { auth } from "@clerk/nextjs/server";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import { MODEL_IDS } from "@/lib/ai/models";
 import { structureResume } from "@/lib/ai/parse-resume";
+import { assertWithinQuota, logGeneration } from "@/lib/ai/usage";
 import { analyzeResume } from "@/lib/ats";
 import { db } from "@/lib/db";
 import { profiles, resumeVersions, resumes } from "@/lib/db/schema";
@@ -14,6 +16,7 @@ import {
   MAX_FILE_BYTES,
   extractTextFromFile,
 } from "@/lib/documents/extract-text";
+import { getTemplate } from "@/lib/documents/templates";
 import { ResumeContent } from "@/lib/validation/resume";
 
 const IMPORT_SOURCES = ["upload", "linkedin"] as const;
@@ -48,21 +51,6 @@ export async function importResume(
     return { error: "That file is too large (max 10 MB)." };
   }
 
-  let content;
-  let rawText;
-  try {
-    rawText = await extractTextFromFile(file);
-    content = await structureResume(rawText);
-  } catch (error) {
-    // Extraction/structuring errors carry user-friendly messages.
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "We couldn't read that file. Try a different one.",
-    };
-  }
-
   const [profile] = await db
     .select()
     .from(profiles)
@@ -74,6 +62,32 @@ export async function importResume(
       error: "Your profile isn't ready yet — give it a moment and try again.",
     };
   }
+
+  let content;
+  let rawText;
+  let usage;
+  try {
+    // Quota is checked before spending the AI call, not after.
+    await assertWithinQuota(profile.id);
+    rawText = await extractTextFromFile(file);
+    ({ content, usage } = await structureResume(rawText));
+  } catch (error) {
+    // Extraction / quota / structuring errors carry user-friendly messages.
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "We couldn't read that file. Try a different one.",
+    };
+  }
+
+  await logGeneration({
+    profileId: profile.id,
+    kind: "resume_parse",
+    model: MODEL_IDS.extract,
+    inputTokens: usage.inputTokens,
+    outputTokens: usage.outputTokens,
+  });
 
   const title = content.basics.name?.trim() || fileBaseName(file.name);
 
@@ -101,6 +115,44 @@ export async function importResume(
 
 function fileBaseName(name: string): string {
   return name.replace(/\.[^./\\]+$/, "").trim() || "Untitled resume";
+}
+
+const SetTemplateInput = z.object({
+  resumeId: z.uuid(),
+  templateId: z.string().min(1),
+});
+
+/** Remembers which template a resume exports with. */
+export async function setResumeTemplate(
+  input: unknown,
+): Promise<{ ok: boolean }> {
+  const { userId } = await auth();
+  if (!userId) return { ok: false };
+
+  const parsed = SetTemplateInput.safeParse(input);
+  if (!parsed.success || !getTemplate(parsed.data.templateId)) {
+    return { ok: false };
+  }
+
+  const [profile] = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.clerkUserId, userId))
+    .limit(1);
+  if (!profile) return { ok: false };
+
+  await db
+    .update(resumes)
+    .set({ templateId: parsed.data.templateId })
+    .where(
+      and(
+        eq(resumes.id, parsed.data.resumeId),
+        eq(resumes.profileId, profile.id),
+      ),
+    );
+
+  revalidatePath(`/resumes/${parsed.data.resumeId}`);
+  return { ok: true };
 }
 
 const SaveResumeInput = z.object({

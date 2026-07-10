@@ -33,11 +33,14 @@ export function ResumeEditor({
   /** When present the editor scores against the job and shows keyword coverage. */
   jobId,
   jobDescription,
+  /** Lets the wizard take over navigation after a tailored save. */
+  onTailoredSaved,
 }: {
   resumeId: string;
   initial: ResumeContent;
   jobId?: string;
   jobDescription?: string;
+  onTailoredSaved?: (versionId: string, score: number) => void;
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState<ResumeContent>(initial);
@@ -91,18 +94,36 @@ export function ResumeEditor({
     }
 
     startTransition(async () => {
-      const result =
-        jobId !== undefined
-          ? await saveTailoredResume({ resumeId, jobId, content: parsed.data })
-          : await saveResumeContent({ resumeId, content: parsed.data });
+      if (jobId !== undefined) {
+        const result = await saveTailoredResume({
+          resumeId,
+          jobId,
+          content: parsed.data,
+        });
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        // The wizard takes over and continues to its finalize/export step.
+        if (onTailoredSaved) {
+          onTailoredSaved(result.versionId, result.score);
+          return;
+        }
+        // A tailored save leaves the base untouched, so `/resumes/[id]` wouldn't
+        // show it. The library nests variants under their base — send them there.
+        router.push("/resumes");
+        return;
+      }
 
+      const result = await saveResumeContent({
+        resumeId,
+        content: parsed.data,
+      });
       if (!result.ok) {
         setError(result.error);
         return;
       }
-      // A tailored save leaves the base untouched, so `/resumes/[id]` wouldn't
-      // show it. The library nests variants under their base — send them there.
-      router.push(tailoring ? "/resumes" : `/resumes/${resumeId}`);
+      router.push(`/resumes/${resumeId}`);
     });
   }
 

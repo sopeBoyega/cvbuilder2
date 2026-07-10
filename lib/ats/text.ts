@@ -1,3 +1,5 @@
+import { stemmer } from "stemmer";
+
 import type { ResumeContent } from "@/lib/validation/resume";
 
 /**
@@ -22,19 +24,37 @@ export function tokenize(text: string): string[] {
     .filter((token) => token.length >= 2);
 }
 
-/** The unigrams and bigrams of a document, for exact term lookup. */
+/**
+ * Porter-stem a single token so morphological variants match: "managed",
+ * "managing" and "management" all reduce to "manag", which kills the most
+ * common false "missing keyword".
+ *
+ * Symbol-bearing and alphanumeric tokens are left untouched — stemming "c++",
+ * "node.js", "ci/cd" or "es2017" would corrupt them. Only pure-alphabetic
+ * tokens of length >= 3 are stemmed.
+ */
+export function stemToken(token: string): string {
+  return /^[a-z]{3,}$/.test(token) ? stemmer(token) : token;
+}
+
+/** Stems each word of a (possibly multi-word) term for matching. */
+export function stemTerm(term: string): string {
+  return term.split(" ").map(stemToken).join(" ");
+}
+
+/** The stemmed unigrams and bigrams of a document, for term lookup. */
 export type TokenIndex = ReadonlySet<string>;
 
 /**
- * Matching is token equality, not substring/regex search.
+ * Matching is token equality on stems, not substring/regex search.
  *
  * Regex boundaries can't express these tokens: `\b` and `(?![a-z0-9])` both
  * treat `+` as a boundary, so the term "c" would match inside "c++". Widening
  * the lookaround to exclude `+#.` then breaks "react" in "i use react.".
- * Tokenizing once and comparing whole tokens sidesteps both.
+ * Tokenizing once and comparing whole (stemmed) tokens sidesteps both.
  */
 export function buildTokenIndex(text: string): TokenIndex {
-  const tokens = tokenize(text);
+  const tokens = tokenize(text).map(stemToken);
   const index = new Set<string>(tokens);
   for (let i = 0; i < tokens.length - 1; i++) {
     index.add(`${tokens[i]} ${tokens[i + 1]}`);
@@ -42,9 +62,9 @@ export function buildTokenIndex(text: string): TokenIndex {
   return index;
 }
 
-/** `term` must already be normalized (as extracted keywords always are). */
+/** `term` is stemmed the same way the index was, then looked up. */
 export function hasTerm(index: TokenIndex, term: string): boolean {
-  return index.has(term);
+  return index.has(stemTerm(term));
 }
 
 /** Flattens a resume into the searchable text an ATS would actually read. */
