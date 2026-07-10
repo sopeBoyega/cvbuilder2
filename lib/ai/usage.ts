@@ -55,6 +55,18 @@ export async function assertWithinQuota(profileId: string): Promise<void> {
   }
 }
 
+/**
+ * Coerces a token count to a storable integer. Some providers (Google's
+ * embedding model) report no usage, which the AI SDK surfaces as `NaN` — and
+ * `NaN` is neither null nor a valid `integer` column value, so `?? null`
+ * doesn't catch it and the insert would fail.
+ */
+function toStorableInt(value: number | undefined): number | null {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.round(value)
+    : null;
+}
+
 /** Records a completed AI generation for quota accounting and cost tracking. */
 export async function logGeneration(input: {
   profileId: string;
@@ -67,7 +79,7 @@ export async function logGeneration(input: {
     profileId: input.profileId,
     kind: input.kind,
     model: input.model,
-    inputTokens: input.inputTokens ?? null,
-    outputTokens: input.outputTokens ?? null,
+    inputTokens: toStorableInt(input.inputTokens),
+    outputTokens: toStorableInt(input.outputTokens),
   });
 }
