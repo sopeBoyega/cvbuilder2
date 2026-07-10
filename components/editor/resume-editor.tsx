@@ -2,10 +2,11 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { AlertCircle, Check, Loader2, Plus, Save, Trash2, X } from "lucide-react";
 
 import { ScoreRing } from "@/components/score-ring";
 import { saveResumeContent } from "@/lib/actions/resume";
+import { saveTailoredResume } from "@/lib/actions/tailor";
 import { analyzeResume } from "@/lib/ats";
 import { ResumeContent, type WorkEntry } from "@/lib/validation/resume";
 import { cn } from "@/lib/utils";
@@ -29,9 +30,14 @@ function parseSkills(value: string): string[] {
 export function ResumeEditor({
   resumeId,
   initial,
+  /** When present the editor scores against the job and shows keyword coverage. */
+  jobId,
+  jobDescription,
 }: {
   resumeId: string;
   initial: ResumeContent;
+  jobId?: string;
+  jobDescription?: string;
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState<ResumeContent>(initial);
@@ -39,12 +45,18 @@ export function ResumeEditor({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  const tailoring = Boolean(jobId && jobDescription);
+
   /*
-   * The ATS engine is pure and deterministic, so the baseline score can be
-   * recomputed in the browser on every keystroke — no server round-trip. This
-   * is the no-job-description score (structure + formatting only).
+   * The ATS engine is pure and deterministic, so the whole analysis can be
+   * recomputed in the browser on every keystroke — no server round-trip, no AI.
+   * With a job description this is the live *match* score, and the keyword list
+   * ticks over as the user works the missing terms into their bullets.
    */
-  const liveScore = useMemo(() => analyzeResume({ content: draft }).score, [draft]);
+  const analysis = useMemo(
+    () => analyzeResume({ content: draft, jobDescription }),
+    [draft, jobDescription],
+  );
 
   function patch(changes: Partial<ResumeContent>) {
     setDraft((current) => ({ ...current, ...changes }));
@@ -79,15 +91,18 @@ export function ResumeEditor({
     }
 
     startTransition(async () => {
-      const result = await saveResumeContent({
-        resumeId,
-        content: parsed.data,
-      });
+      const result =
+        jobId !== undefined
+          ? await saveTailoredResume({ resumeId, jobId, content: parsed.data })
+          : await saveResumeContent({ resumeId, content: parsed.data });
+
       if (!result.ok) {
         setError(result.error);
         return;
       }
-      router.push(`/resumes/${resumeId}`);
+      // A tailored save leaves the base untouched, so `/resumes/[id]` wouldn't
+      // show it. The library nests variants under their base — send them there.
+      router.push(tailoring ? "/resumes" : `/resumes/${resumeId}`);
     });
   }
 
@@ -96,13 +111,15 @@ export function ResumeEditor({
       {/* Sticky header with the live score */}
       <div className="sticky top-16 z-20 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface/90 p-4 backdrop-blur-md">
         <div className="flex items-center gap-4">
-          <ScoreRing score={liveScore} size={48} />
+          <ScoreRing score={analysis.score} size={48} />
           <div>
             <p className="text-sm font-semibold text-on-surface">
-              Baseline ATS score
+              {tailoring ? "Live match score" : "Baseline ATS score"}
             </p>
             <p className="text-xs text-on-surface-variant">
-              Updates as you edit. Excludes job-specific keywords.
+              {tailoring
+                ? "Recalculated against the job on every keystroke."
+                : "Updates as you edit. Excludes job-specific keywords."}
             </p>
           </div>
         </div>
@@ -117,9 +134,63 @@ export function ResumeEditor({
           ) : (
             <Save className="size-4" />
           )}
-          Save version
+          {tailoring ? "Save tailored version" : "Save version"}
         </button>
       </div>
+
+      {/* Keyword coverage — only meaningful against a job description */}
+      {tailoring ? (
+        <section className="rounded-xl border border-border bg-surface p-6">
+          <div className="mb-4 flex items-baseline justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-primary">
+              Keyword coverage
+            </h2>
+            <span className="font-mono text-xs text-on-surface-variant">
+              {analysis.matched.length}/
+              {analysis.matched.length + analysis.missing.length} covered
+            </span>
+          </div>
+
+          {analysis.missing.length === 0 ? (
+            <p className="text-sm text-primary">
+              Every keyword from the job description now appears in your resume.
+            </p>
+          ) : (
+            <>
+              <p className="mb-3 text-xs text-on-surface-variant">
+                Work these into your bullets where they&apos;re truthful. They
+                tick over to green as you type — never add a skill you
+                don&apos;t have.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {analysis.missing.map((term) => (
+                  <span
+                    key={term}
+                    className="inline-flex items-center gap-1.5 rounded border border-coral-hi/20 bg-coral-hi/10 px-2 py-0.5 font-mono text-xs text-coral-hi"
+                  >
+                    <X className="size-3" />
+                    {term}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+
+          {analysis.matched.length > 0 ? (
+            <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
+              {analysis.matched.map((term) => (
+                <span
+                  key={term}
+                  className="inline-flex items-center gap-1.5 rounded border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary"
+                >
+                  <Check className="size-3" />
+                  {term}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       {error ? (
         <p role="alert" className="flex items-start gap-2 text-sm text-destructive">

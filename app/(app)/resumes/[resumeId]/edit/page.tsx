@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { ArrowLeft } from "lucide-react";
 
 import { ResumeEditor } from "@/components/editor/resume-editor";
@@ -37,10 +37,16 @@ export default async function ResumeEditPage({
     .limit(1);
   if (!resume) notFound();
 
+  // Edit the base version, never a tailored variant.
   const [version] = await db
     .select()
     .from(resumeVersions)
-    .where(eq(resumeVersions.resumeId, resume.id))
+    .where(
+      and(
+        eq(resumeVersions.resumeId, resume.id),
+        isNull(resumeVersions.tailoredForJobId),
+      ),
+    )
     .orderBy(desc(resumeVersions.createdAt))
     .limit(1);
   if (!version) notFound();

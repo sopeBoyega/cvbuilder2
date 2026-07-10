@@ -1,7 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { analyzeResume } from "@/lib/ats";
@@ -20,6 +21,27 @@ import {
 import { AtsAnalysis } from "@/lib/validation/ats";
 import { JobInput } from "@/lib/validation/job";
 import { ResumeContent } from "@/lib/validation/resume";
+
+/**
+ * The newest *untailored* version of a resume — the base the user maintains.
+ * Tailoring always starts here, never from a variant produced for another job,
+ * otherwise each pass would compound the last job's keyword stuffing.
+ */
+async function baseVersionOf(resumeId: string) {
+  const [version] = await db
+    .select()
+    .from(resumeVersions)
+    .where(
+      and(
+        eq(resumeVersions.resumeId, resumeId),
+        isNull(resumeVersions.tailoredForJobId),
+      ),
+    )
+    .orderBy(desc(resumeVersions.createdAt))
+    .limit(1);
+
+  return version ?? null;
+}
 
 async function requireProfile() {
   const { userId } = await auth();
@@ -109,7 +131,18 @@ const AnalyzeInput = z.object({
 });
 
 export type RunAnalysisState =
-  | { ok: true; analysis: AtsAnalysis; jobTitle: string; resumeTitle: string }
+  | {
+      ok: true;
+      analysis: AtsAnalysis;
+      jobTitle: string;
+      resumeTitle: string;
+      /**
+       * Returned so the client can re-derive which keywords are known skills
+       * via `extractJobKeywords`. That function is deterministic, so the client
+       * always agrees with the server — no need to widen the stored schema.
+       */
+      jobDescription: string;
+    }
   | { ok: false; error: string };
 
 /**
@@ -141,12 +174,7 @@ export async function runAnalysis(input: unknown): Promise<RunAnalysisState> {
     .limit(1);
   if (!resume) return { ok: false, error: "That resume could not be found." };
 
-  const [version] = await db
-    .select()
-    .from(resumeVersions)
-    .where(eq(resumeVersions.resumeId, resume.id))
-    .orderBy(desc(resumeVersions.createdAt))
-    .limit(1);
+  const version = await baseVersionOf(resume.id);
   if (!version) {
     return { ok: false, error: "That resume has no content to analyze yet." };
   }
@@ -176,5 +204,144 @@ export async function runAnalysis(input: unknown): Promise<RunAnalysisState> {
     analysis,
     jobTitle: job.company ? `${job.title} · ${job.company}` : job.title,
     resumeTitle: resume.title,
+    jobDescription: job.description,
   };
+}
+
+export type TailorContextState =
+  | {
+      ok: true;
+      content: ResumeContent;
+      jobDescription: string;
+      jobTitle: string;
+      resumeTitle: string;
+    }
+  | { ok: false; error: string };
+
+/** Everything the editor step needs to score a draft against the job live. */
+export async function getTailorContext(
+  input: unknown,
+): Promise<TailorContextState> {
+  const profile = await requireProfile();
+  if (!profile) return { ok: false, error: "You need to be signed in." };
+
+  const parsed = AnalyzeInput.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: "Pick a job and a resume first." };
+  }
+  const { jobId, resumeId } = parsed.data;
+
+  const [job] = await db
+    .select()
+    .from(jobs)
+    .where(and(eq(jobs.id, jobId), eq(jobs.profileId, profile.id)))
+    .limit(1);
+  if (!job) return { ok: false, error: "That job could not be found." };
+
+  const [resume] = await db
+    .select()
+    .from(resumes)
+    .where(and(eq(resumes.id, resumeId), eq(resumes.profileId, profile.id)))
+    .limit(1);
+  if (!resume) return { ok: false, error: "That resume could not be found." };
+
+  const version = await baseVersionOf(resume.id);
+  if (!version) {
+    return { ok: false, error: "That resume has no content to edit yet." };
+  }
+
+  const content = ResumeContent.safeParse(version.content);
+  if (!content.success) {
+    return { ok: false, error: "This resume's content could not be read." };
+  }
+
+  return {
+    ok: true,
+    content: content.data,
+    jobDescription: job.description,
+    jobTitle: job.company ? `${job.title} · ${job.company}` : job.title,
+    resumeTitle: resume.title,
+  };
+}
+
+const SaveTailoredInput = z.object({
+  resumeId: z.uuid(),
+  jobId: z.uuid(),
+  content: ResumeContent,
+});
+
+export type SaveTailoredState =
+  | { ok: true; score: number }
+  | { ok: false; error: string };
+
+/**
+ * Persists the tailored draft as a new version linked to the job, and records
+ * the analysis that version earned. `resume_versions.ats_score` on a tailored
+ * variant is the job-specific match score — that's what the library card's
+ * "88% Match" reads.
+ */
+export async function saveTailoredResume(
+  input: unknown,
+): Promise<SaveTailoredState> {
+  const profile = await requireProfile();
+  if (!profile) return { ok: false, error: "You need to be signed in." };
+
+  const parsed = SaveTailoredInput.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "That resume isn't valid.",
+    };
+  }
+  const { resumeId, jobId, content } = parsed.data;
+
+  const [job] = await db
+    .select()
+    .from(jobs)
+    .where(and(eq(jobs.id, jobId), eq(jobs.profileId, profile.id)))
+    .limit(1);
+  if (!job) return { ok: false, error: "That job could not be found." };
+
+  const [resume] = await db
+    .select()
+    .from(resumes)
+    .where(and(eq(resumes.id, resumeId), eq(resumes.profileId, profile.id)))
+    .limit(1);
+  if (!resume) return { ok: false, error: "That resume could not be found." };
+
+  const analysis = analyzeResume({
+    content,
+    jobDescription: job.description,
+  });
+
+  const [version] = await db
+    .insert(resumeVersions)
+    .values({
+      resumeId: resume.id,
+      content,
+      source: "tailored",
+      atsScore: analysis.score,
+      tailoredForJobId: job.id,
+    })
+    .returning();
+
+  await db.insert(analyses).values({
+    resumeVersionId: version.id,
+    jobId: job.id,
+    atsScore: analysis.score,
+    matched: analysis.matched,
+    missing: analysis.missing,
+    flags: analysis.flags,
+    breakdown: analysis.breakdown,
+  });
+
+  await db
+    .update(resumes)
+    .set({ updatedAt: sql`now()` })
+    .where(eq(resumes.id, resume.id));
+
+  revalidatePath("/resumes");
+  revalidatePath("/dashboard");
+
+  return { ok: true, score: analysis.score };
 }

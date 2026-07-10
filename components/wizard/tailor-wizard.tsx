@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { AnalysisStep } from "@/components/wizard/analysis-step";
+import { EditStep } from "@/components/wizard/edit-step";
 import { JobStep } from "@/components/wizard/job-step";
 import {
   ResumeStep,
@@ -51,6 +52,7 @@ export function TailorWizard({
         {step === "job" ? <JobStep /> : null}
         {step === "resume" ? <ResumeStep resumes={resumes} jobs={jobs} /> : null}
         {step === "analysis" ? <AnalysisStep /> : null}
+        {step === "edit" ? <EditStep /> : null}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
 import { TailorWizard } from "@/components/wizard/tailor-wizard";
 import type { JobOption, ResumeOption } from "@/components/wizard/resume-step";
@@ -49,7 +49,15 @@ async function loadWizardData(): Promise<{
     db
       .select({ resume: resumes, version: resumeVersions })
       .from(resumes)
-      .leftJoin(resumeVersions, eq(resumeVersions.resumeId, resumes.id))
+      // Join only base versions — the card's score and section counts describe
+      // the resume you'd tailor, not a variant built for some other job.
+      .leftJoin(
+        resumeVersions,
+        and(
+          eq(resumeVersions.resumeId, resumes.id),
+          isNull(resumeVersions.tailoredForJobId),
+        ),
+      )
       .where(eq(resumes.profileId, profile.id))
       .orderBy(desc(resumes.updatedAt), desc(resumeVersions.createdAt)),
     db
