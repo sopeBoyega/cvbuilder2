@@ -52,6 +52,17 @@ export async function safeEmbed(
 
   try {
     const { embedding, tokens } = await embedText(text);
+
+    // A silent dimension mismatch would make the DB insert throw later; catch
+    // it here with a clear message instead.
+    if (embedding.length !== EMBEDDING_DIMENSIONS) {
+      console.error(
+        `[embeddings] expected ${EMBEDDING_DIMENSIONS} dims, got ${embedding.length}. ` +
+          `Semantic scoring disabled. Check outputDimensionality plumbing.`,
+      );
+      return null;
+    }
+
     await logGeneration({
       profileId,
       kind: "embedding",
@@ -59,7 +70,15 @@ export async function safeEmbed(
       inputTokens: tokens,
     });
     return embedding;
-  } catch {
+  } catch (error) {
+    // Swallowed so scoring never breaks — but logged, because a silent null is
+    // exactly why "semantic: Not available" is impossible to diagnose. The
+    // message here is the fastest route to the real cause (missing key, no
+    // model access, rate limit, …).
+    console.error(
+      "[embeddings] embed failed; semantic scoring will show as unavailable:",
+      error instanceof Error ? error.message : error,
+    );
     return null;
   }
 }

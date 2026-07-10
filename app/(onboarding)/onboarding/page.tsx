@@ -57,10 +57,10 @@ export default function OnboardingPage() {
 
       <div className="mb-10 max-w-2xl text-center">
         <h1 className="mb-4 font-heading text-[30px] font-bold leading-[1.15] tracking-tight text-on-background md:text-[40px]">
-          Let&apos;s build your first tailored resume
+          Add a resume
         </h1>
         <p className="text-base leading-6 text-on-surface-variant">
-          Choose how you&apos;d like to begin your professional narrative.
+          Choose how you&apos;d like to bring in this one.
         </p>
       </div>
 
