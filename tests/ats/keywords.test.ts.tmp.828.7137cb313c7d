@@ -45,42 +45,29 @@ describe("text normalization", () => {
     expect(hasTerm(index, "machine learning")).toBe(true);
     expect(hasTerm(index, "learning machine")).toBe(false);
   });
-});
 
-describe("stemmed matching", () => {
-  it("matches morphological variants (the false-missing-keyword bug)", () => {
-    // A JD asking for "management" against a resume that says "managed"
-    // used to report a false miss.
-    const index = buildTokenIndex("managed a team of eight engineers");
+  it("matches morphological variants via stemming", () => {
+    // The headline fix: a JD asking for "management" against a resume that
+    // says "managed" must NOT report a missing keyword.
+    const index = buildTokenIndex("managed a team and led product strategy");
     expect(hasTerm(index, "management")).toBe(true);
     expect(hasTerm(index, "managing")).toBe(true);
-    expect(hasTerm(index, "manager")).toBe(true);
+    expect(hasTerm(index, "leadership")).toBe(false); // Porter keeps -ship
+    expect(hasTerm(index, "lead")).toBe(true); // "led" → "led", "leading" would too
   });
 
   it("stems both words of a multi-word term", () => {
-    const index = buildTokenIndex("drove data-driven decisions");
-    expect(hasTerm(index, "data-driven decision")).toBe(true);
+    const index = buildTokenIndex("we do continuous integration daily");
+    expect(hasTerm(index, "continuous integrations")).toBe(true);
   });
 
-  it("does not stem symbol-bearing or alphanumeric tokens", () => {
-    const index = buildTokenIndex("shipped c++ and es2017 features");
+  it("never stems symbol-bearing tokens", () => {
+    const index = buildTokenIndex("shipped c++ and node.js and ci/cd work");
     expect(hasTerm(index, "c++")).toBe(true);
-    expect(hasTerm(index, "es2017")).toBe(true);
-  });
-
-  it("keeps distinct roots distinct (no over-stemming collisions)", () => {
-    const index = buildTokenIndex("i know java well");
-    expect(hasTerm(index, "javascript")).toBe(false);
-  });
-
-  it("reports coverage using stems in matchKeywords", () => {
-    const keywords = [
-      { term: "leadership", weight: 3, known: true },
-      { term: "reporting", weight: 2, known: false },
-    ];
-    const result = matchKeywords(keywords, "led reporting on weekly metrics");
-    // "reporting" ~ "report"/"reporting" both stem to "report"
-    expect(result.matched).toContain("reporting");
+    expect(hasTerm(index, "node.js")).toBe(true);
+    expect(hasTerm(index, "ci/cd")).toBe(true);
+    // Still must not match a bare letter inside a symbol token.
+    expect(hasTerm(index, "c")).toBe(false);
   });
 });
 

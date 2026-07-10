@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, CheckCircle2, SquarePen } from "lucide-react";
+import Link from "next/link";
+import { Check, CheckCircle2, FileText, SquarePen } from "lucide-react";
 
 import { TemplatePreview } from "@/components/templates/template-preview";
 import {
@@ -95,6 +96,7 @@ export function TemplateGallery({
 
 function TemplateCard({ template }: { template: ResumeTemplate }) {
   const usable = isTemplateUsable(template);
+  const previewHref = `/api/templates/${template.id}/preview`;
 
   return (
     <div className="group relative overflow-hidden rounded-xl border border-[var(--border-strong)] bg-surface transition-all duration-300 hover:border-primary/50">
@@ -118,30 +120,40 @@ function TemplateCard({ template }: { template: ResumeTemplate }) {
         </p>
 
         <div className="mt-6 flex flex-col gap-3">
-          <button
-            type="button"
-            disabled={!usable}
-            title={usable ? undefined : "The PDF renderer for this template isn't built yet"}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-coral-hi/30 bg-coral-hi/10 py-3 text-base font-semibold text-coral-hi transition-all hover:bg-coral-hi hover:text-[#601401] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-coral-hi/10 disabled:hover:text-coral-hi"
+          {usable ? (
+            <a
+              href={previewHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 py-3 text-base font-semibold text-primary transition-all hover:bg-primary hover:text-on-primary"
+            >
+              <FileText className="size-4" />
+              Preview PDF
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              title="The PDF renderer for this template isn't built yet"
+              className="w-full cursor-not-allowed rounded-lg border border-primary/30 bg-primary/10 py-3 text-base font-semibold text-primary opacity-40"
+            >
+              Preview PDF
+            </button>
+          )}
+
+          <Link
+            href="/resumes"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-coral-hi/30 bg-coral-hi/10 py-3 text-base font-semibold text-coral-hi transition-all hover:bg-coral-hi hover:text-[#601401]"
           >
             <SquarePen className="size-4" />
-            Customize
-          </button>
-          <button
-            type="button"
-            disabled={!usable}
-            title={usable ? undefined : "The PDF renderer for this template isn't built yet"}
-            className="w-full rounded-lg border border-primary/30 bg-primary/10 py-3 text-base font-semibold text-primary transition-all hover:bg-primary hover:text-on-primary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-primary/10 disabled:hover:text-primary"
-          >
-            Use template
-          </button>
+            Use on a resume
+          </Link>
         </div>
 
-        {!usable ? (
-          <p className="mt-3 text-center text-[11px] uppercase tracking-wider text-on-surface-variant">
-            Preview only — renderer coming in Phase 1
-          </p>
-        ) : null}
+        <p className="mt-3 text-center text-[11px] text-on-surface-variant">
+          Preview renders a sample resume. Pick a template per resume when you
+          export.
+        </p>
       </div>
     </div>
   );

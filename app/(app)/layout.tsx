@@ -10,6 +10,7 @@ import {
   FolderCheck,
   HelpCircle,
   Home,
+  LayoutTemplate,
   LineChart,
   LogOut,
   Plus,
@@ -25,6 +26,7 @@ import { cn } from "@/lib/utils";
 const SIDEBAR_NAV = [
   { href: "/dashboard", label: "Home", icon: Home },
   { href: "/resumes", label: "Resumes", icon: FileText },
+  { href: "/templates", label: "Templates", icon: LayoutTemplate },
   { href: "/applications", label: "Jobs", icon: Briefcase },
   { href: "/insights", label: "Analytics", icon: LineChart },
 ] as const;

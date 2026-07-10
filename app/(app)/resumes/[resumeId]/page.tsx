@@ -6,6 +6,7 @@ import { ArrowLeft, Mail, MapPin, Phone, SquarePen } from "lucide-react";
 
 import { db } from "@/lib/db";
 import { profiles, resumeVersions, resumes } from "@/lib/db/schema";
+import { ExportControl } from "@/components/resumes/export-control";
 import { ResumeContent } from "@/lib/validation/resume";
 
 const UUID_RE =
@@ -73,11 +74,17 @@ export default async function ResumeEditorPage({
           ) : null}
           <Link
             href={`/resumes/${resume.id}/edit`}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition-all hover:brightness-110"
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-on-surface transition-all hover:border-primary hover:text-primary"
           >
             <SquarePen className="size-4" />
             Edit
           </Link>
+          {version ? (
+            <ExportControl
+              resumeId={resume.id}
+              initialTemplateId={resume.templateId}
+            />
+          ) : null}
         </div>
       </div>
 

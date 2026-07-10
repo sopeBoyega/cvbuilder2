@@ -1,13 +1,12 @@
 /**
- * The template registry.
+ * The template registry — metadata only.
  *
- * Templates are code artifacts (they become @react-pdf/renderer components),
- * not user data — so the registry lives here rather than in the database.
- * `resumes.template_id` stores one of these ids.
+ * Templates are code artifacts (their PDF renderers live in
+ * `lib/documents/pdf/`), not user data, so the registry lives here rather than
+ * in the database. `resumes.template_id` stores one of these ids.
  *
- * `renderer: null` means the PDF renderer for this template hasn't been built
- * yet, so the gallery must not offer it as usable. Once a template gains a
- * renderer, the gallery lights it up with no other change.
+ * Deliberately free of any @react-pdf/renderer import: the client-side gallery
+ * imports this module, and react-pdf must never reach the browser bundle.
  */
 
 export type TemplateStyle = "minimal" | "classic" | "modern";
@@ -19,9 +18,11 @@ export type ResumeTemplate = {
   style: TemplateStyle;
   /** ATS-safe = real selectable text, single column, no tables or images. */
   atsSafe: boolean;
-  /** Null until the @react-pdf/renderer component exists. */
-  renderer: null;
+  /** False when no PDF renderer exists for this template yet. */
+  available: boolean;
 };
+
+export const DEFAULT_TEMPLATE_ID = "global-standard";
 
 export const TEMPLATES: readonly ResumeTemplate[] = [
   {
@@ -31,7 +32,7 @@ export const TEMPLATES: readonly ResumeTemplate[] = [
       "Single column with a strong header. Generous whitespace, typography-led.",
     style: "modern",
     atsSafe: true,
-    renderer: null,
+    available: true,
   },
   {
     id: "global-standard",
@@ -40,7 +41,7 @@ export const TEMPLATES: readonly ResumeTemplate[] = [
       "Traditional structure that parses cleanly everywhere. The safe default.",
     style: "classic",
     atsSafe: true,
-    renderer: null,
+    available: true,
   },
   {
     id: "tech-vanguard",
@@ -49,7 +50,7 @@ export const TEMPLATES: readonly ResumeTemplate[] = [
       "Dense and information-rich, with room for projects and deep skill lists.",
     style: "minimal",
     atsSafe: true,
-    renderer: null,
+    available: true,
   },
 ] as const;
 
@@ -65,5 +66,5 @@ export function getTemplate(id: string): ResumeTemplate | undefined {
 
 /** True once a template can actually produce a PDF. */
 export function isTemplateUsable(template: ResumeTemplate): boolean {
-  return template.renderer !== null;
+  return template.available;
 }

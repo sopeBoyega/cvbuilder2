@@ -14,19 +14,27 @@ Rules:
 - If a field or section is missing, omit it rather than guessing.
 - "name" in basics is required: use the candidate's name as printed at the top of the document.`;
 
+export type StructuredResume = {
+  content: ResumeContent;
+  usage: { inputTokens?: number; outputTokens?: number };
+};
+
 /**
  * Turns extracted resume text into a typed, runtime-validated `ResumeContent`.
  * Throws if the AI provider key is missing or the model output can't be
- * coerced to the schema (the AI SDK validates against the Zod schema).
+ * coerced to the schema (the AI SDK validates against the Zod schema). Returns
+ * token usage so the caller can log the generation.
  */
-export async function structureResume(rawText: string): Promise<ResumeContent> {
+export async function structureResume(
+  rawText: string,
+): Promise<StructuredResume> {
   if (!env.GOOGLE_GENERATIVE_AI_API_KEY) {
     throw new Error(
       "Resume parsing is unavailable: GOOGLE_GENERATIVE_AI_API_KEY is not configured.",
     );
   }
 
-  const { object } = await generateObject({
+  const { object, usage } = await generateObject({
     model: models.extract,
     schema: ResumeContent,
     schemaName: "ResumeContent",
@@ -35,5 +43,11 @@ export async function structureResume(rawText: string): Promise<ResumeContent> {
     prompt: `Parse the following resume text into the ResumeContent schema.\n\n---\n${rawText}`,
   });
 
-  return object;
+  return {
+    content: object,
+    usage: {
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+    },
+  };
 }

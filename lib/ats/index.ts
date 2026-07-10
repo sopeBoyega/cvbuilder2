@@ -8,10 +8,13 @@ export {
 } from "@/lib/ats/keywords";
 export { lintStructure, type LintResult } from "@/lib/ats/structure";
 export { lintFormatting } from "@/lib/ats/formatting";
+export { cosineSimilarity, toSemanticScore } from "@/lib/ats/semantic";
 export {
   resumeToText,
   normalize,
   tokenize,
+  stemToken,
+  stemTerm,
   buildTokenIndex,
   hasTerm,
   type TokenIndex,

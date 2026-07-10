@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 
 import { AnalysisStep } from "@/components/wizard/analysis-step";
 import { EditStep } from "@/components/wizard/edit-step";
+import { FinalizeStep } from "@/components/wizard/finalize-step";
 import { JobStep } from "@/components/wizard/job-step";
+import { QuestionsStep } from "@/components/wizard/questions-step";
 import {
   ResumeStep,
   type JobOption,
@@ -52,7 +54,9 @@ export function TailorWizard({
         {step === "job" ? <JobStep /> : null}
         {step === "resume" ? <ResumeStep resumes={resumes} jobs={jobs} /> : null}
         {step === "analysis" ? <AnalysisStep /> : null}
+        {step === "questions" ? <QuestionsStep /> : null}
         {step === "edit" ? <EditStep /> : null}
+        {step === "finalize" ? <FinalizeStep /> : null}
       </div>
     </div>
   );

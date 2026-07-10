@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, NotebookPen } from "lucide-react";
 
 import { ResumeEditor } from "@/components/editor/resume-editor";
 import { getTailorContext } from "@/lib/actions/tailor";
@@ -21,6 +21,8 @@ export function EditStep() {
   const hydrated = useWizardHydrated();
   const jobId = useWizard((state) => state.jobId);
   const resumeId = useWizard((state) => state.resumeId);
+  const answers = useWizard((state) => state.answers);
+  const setWizard = useWizard((state) => state.set);
 
   const [context, setContext] = useState<Context | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -78,11 +80,44 @@ export function EditStep() {
         </p>
       </header>
 
+      {answers.length > 0 ? (
+        <section className="rounded-xl border border-indigo-hi/30 bg-indigo-hi/5 p-6">
+          <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-indigo-hi">
+            <NotebookPen className="size-4" />
+            Your notes from the AI questions
+          </h2>
+          <p className="mt-2 text-xs text-on-surface-variant">
+            Work these into your bullets where they&apos;re truthful — the score
+            updates as you do.
+          </p>
+          <dl className="mt-4 space-y-4">
+            {answers.map((entry) => (
+              <div key={entry.question}>
+                <dt className="text-sm font-semibold text-on-surface">
+                  {entry.question}
+                </dt>
+                <dd className="mt-1 text-sm text-on-surface-variant">
+                  {entry.answer}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ) : null}
+
       <ResumeEditor
         resumeId={resumeId}
         initial={context.content}
         jobId={jobId}
         jobDescription={context.jobDescription}
+        onTailoredSaved={(versionId, score) => {
+          setWizard({
+            tailoredVersionId: versionId,
+            tailoredScore: score,
+            step: "finalize",
+          });
+          router.push("/tailor/finalize");
+        }}
       />
     </div>
   );
