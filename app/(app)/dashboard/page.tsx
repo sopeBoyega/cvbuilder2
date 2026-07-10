@@ -13,7 +13,7 @@ import {
 
 import { db } from "@/lib/db";
 import { profiles, resumes } from "@/lib/db/schema";
-import { cn } from "@/lib/utils";
+import { cn, timeAgo } from "@/lib/utils";
 
 const CARD_HOVER =
   "transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-[inset_0_0_20px_rgba(91,192,107,0.05),0_10px_30px_-10px_rgba(0,0,0,0.5)]";
@@ -23,23 +23,6 @@ function greetingFor(date = new Date()): string {
   if (hour < 12) return "Good morning";
   if (hour < 18) return "Good afternoon";
   return "Good evening";
-}
-
-const relativeTime = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
-
-function timeAgo(date: Date): string {
-  const seconds = Math.round((date.getTime() - Date.now()) / 1000);
-  const units: [Intl.RelativeTimeFormatUnit, number][] = [
-    ["day", 86400],
-    ["hour", 3600],
-    ["minute", 60],
-  ];
-  for (const [unit, secondsPerUnit] of units) {
-    if (Math.abs(seconds) >= secondsPerUnit) {
-      return relativeTime.format(Math.round(seconds / secondsPerUnit), unit);
-    }
-  }
-  return "just now";
 }
 
 export default async function DashboardPage() {
