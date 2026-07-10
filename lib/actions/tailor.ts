@@ -13,6 +13,10 @@ import {
   resumeVersions,
   resumes,
 } from "@/lib/db/schema";
+import {
+  MAX_FILE_BYTES,
+  extractTextFromFile,
+} from "@/lib/documents/extract-text";
 import { AtsAnalysis } from "@/lib/validation/ats";
 import { JobInput } from "@/lib/validation/job";
 import { ResumeContent } from "@/lib/validation/resume";
@@ -61,6 +65,42 @@ export async function createJob(input: unknown): Promise<CreateJobState> {
     .returning();
 
   return { ok: true, jobId: job.id };
+}
+
+export type ExtractJobTextState =
+  | { ok: true; text: string }
+  | { ok: false; error: string };
+
+/**
+ * Step 1's "Upload file" tab: pull the job description out of a PDF/DOCX using
+ * the same extractor the resume import uses. No AI — this is text extraction,
+ * not structuring.
+ */
+export async function extractJobDescriptionFromFile(
+  formData: FormData,
+): Promise<ExtractJobTextState> {
+  const { userId } = await auth();
+  if (!userId) return { ok: false, error: "You need to be signed in." };
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, error: "Choose a file first." };
+  }
+  if (file.size > MAX_FILE_BYTES) {
+    return { ok: false, error: "That file is too large (max 10 MB)." };
+  }
+
+  try {
+    return { ok: true, text: await extractTextFromFile(file) };
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "We couldn't read that file. Paste the text instead.",
+    };
+  }
 }
 
 const AnalyzeInput = z.object({

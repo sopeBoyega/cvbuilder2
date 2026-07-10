@@ -3,11 +3,14 @@ import { auth } from "@clerk/nextjs/server";
 import { desc, eq } from "drizzle-orm";
 
 import { TailorWizard } from "@/components/wizard/tailor-wizard";
-import type { ResumeOption } from "@/components/wizard/resume-step";
+import type { JobOption, ResumeOption } from "@/components/wizard/resume-step";
 import { db } from "@/lib/db";
-import { profiles, resumeVersions, resumes } from "@/lib/db/schema";
+import { jobs, profiles, resumeVersions, resumes } from "@/lib/db/schema";
 import { timeAgo } from "@/lib/utils";
+import { ResumeContent } from "@/lib/validation/resume";
 import { isWizardStep } from "@/lib/validation/wizard";
+
+const RECENT_JOBS = 20;
 
 /** `/tailor`, `/tailor/resume`, `/tailor/analysis` — progress is URL-addressable. */
 export default async function TailorWizardPage({
@@ -21,38 +24,87 @@ export default async function TailorWizardPage({
   const current = step?.[0] ?? "job";
   if (!isWizardStep(current)) notFound();
 
-  return <TailorWizard step={current} resumes={await loadResumeOptions()} />;
+  const { resumeOptions, jobOptions } = await loadWizardData();
+
+  return (
+    <TailorWizard step={current} resumes={resumeOptions} jobs={jobOptions} />
+  );
 }
 
-async function loadResumeOptions(): Promise<ResumeOption[]> {
+async function loadWizardData(): Promise<{
+  resumeOptions: ResumeOption[];
+  jobOptions: JobOption[];
+}> {
   const { userId } = await auth();
-  if (!userId) return [];
+  if (!userId) return { resumeOptions: [], jobOptions: [] };
 
   const [profile] = await db
     .select()
     .from(profiles)
     .where(eq(profiles.clerkUserId, userId))
     .limit(1);
-  if (!profile) return [];
+  if (!profile) return { resumeOptions: [], jobOptions: [] };
 
-  const rows = await db
-    .select({ resume: resumes, version: resumeVersions })
-    .from(resumes)
-    .leftJoin(resumeVersions, eq(resumeVersions.resumeId, resumes.id))
-    .where(eq(resumes.profileId, profile.id))
-    .orderBy(desc(resumes.updatedAt), desc(resumeVersions.createdAt));
+  const [rows, jobRows] = await Promise.all([
+    db
+      .select({ resume: resumes, version: resumeVersions })
+      .from(resumes)
+      .leftJoin(resumeVersions, eq(resumeVersions.resumeId, resumes.id))
+      .where(eq(resumes.profileId, profile.id))
+      .orderBy(desc(resumes.updatedAt), desc(resumeVersions.createdAt)),
+    db
+      .select({ id: jobs.id, title: jobs.title, company: jobs.company })
+      .from(jobs)
+      .where(eq(jobs.profileId, profile.id))
+      .orderBy(desc(jobs.createdAt))
+      .limit(RECENT_JOBS),
+  ]);
 
   // Newest version per resume wins; later rows for the same resume are older.
-  const options = new Map<string, ResumeOption>();
+  const resumeOptions = new Map<string, ResumeOption>();
   for (const { resume, version } of rows) {
-    if (options.has(resume.id)) continue;
-    options.set(resume.id, {
+    if (resumeOptions.has(resume.id)) continue;
+
+    const summary = version ? summarize(version.content) : null;
+    resumeOptions.set(resume.id, {
       id: resume.id,
       title: resume.title,
       updatedLabel: timeAgo(resume.updatedAt),
       atsScore: version?.atsScore ?? null,
+      sectionCount: summary?.sectionCount ?? null,
+      bulletCount: summary?.bulletCount ?? null,
     });
   }
 
-  return [...options.values()];
+  return {
+    resumeOptions: [...resumeOptions.values()],
+    jobOptions: jobRows.map((job) => ({
+      id: job.id,
+      label: job.company ? `${job.title} · ${job.company}` : job.title,
+    })),
+  };
+}
+
+/** Counts real sections and bullets — never a placeholder figure. */
+function summarize(
+  content: unknown,
+): { sectionCount: number; bulletCount: number } | null {
+  const parsed = ResumeContent.safeParse(content);
+  if (!parsed.success) return null;
+
+  const resume = parsed.data;
+  const sections = [
+    Boolean(resume.summary?.trim()),
+    resume.work.length > 0,
+    resume.education.length > 0,
+    resume.skills.length > 0,
+    resume.projects.length > 0,
+    resume.certifications.length > 0,
+  ].filter(Boolean).length;
+
+  const bulletCount =
+    resume.work.reduce((total, entry) => total + entry.bullets.length, 0) +
+    resume.projects.reduce((total, entry) => total + entry.bullets.length, 0);
+
+  return { sectionCount: sections, bulletCount };
 }
