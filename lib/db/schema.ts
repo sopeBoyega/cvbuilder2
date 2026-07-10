@@ -139,3 +139,38 @@ export const aiGenerations = pgTable("ai_generations", {
     .defaultNow()
     .notNull(),
 });
+
+/**
+ * A tracked job application — one card on the kanban board. `status` is stored
+ * as text and validated by the Zod enum in `lib/validation/application.ts`
+ * (same pattern as `source`/`kind` elsewhere), avoiding pg-enum migration pain.
+ *
+ * The job it targets is required; the tailored resume version used is optional
+ * (you can track an application before tailoring, and if that version is later
+ * deleted the card survives with a null reference).
+ */
+export const applications = pgTable("applications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  profileId: uuid("profile_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  jobId: uuid("job_id")
+    .references(() => jobs.id, { onDelete: "cascade" })
+    .notNull(),
+  resumeVersionId: uuid("resume_version_id").references(
+    () => resumeVersions.id,
+    { onDelete: "set null" },
+  ),
+  status: text("status").notNull().default("saved"),
+  /** Free-text "what's my next move" reminder shown on the card. */
+  nextAction: text("next_action"),
+  /** Manual ordering within a column, low-to-high. */
+  position: integer("position").notNull().default(0),
+  appliedAt: timestamp("applied_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
