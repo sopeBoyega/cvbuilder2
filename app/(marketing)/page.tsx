@@ -17,15 +17,36 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { Logo } from "@/components/shell/logo";
 import { BRAND } from "@/lib/brand";
 
-const footerColumns = [
-  ["Features", "Pricing", "ATS Checker", "Templates", "Chrome Extension"],
-  ["Sign Up", "Sign In", "Privacy Policy", "Terms of Service"],
-  ["Help Center", "Contact Us", "Interview Prep", "Resources"],
-  ["About Us", "Instagram", "LinkedIn", "Twitter"],
+type FooterLink = { label: string; href?: string };
+
+const footerColumns: FooterLink[][] = [
+  [
+    { label: "Features", href: "/#features" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "ATS Checker", href: "/tools/ats-checker" },
+  ],
+  [
+    { label: "Sign Up", href: "/sign-up" },
+    { label: "Sign In", href: "/sign-in" },
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms of Service", href: "/terms" },
+    { label: "Cookie Policy", href: "/cookies" },
+  ],
+  [
+    { label: "Help Center" },
+    { label: "Contact Us", href: `mailto:${BRAND.contactEmail}` },
+    { label: "Resources" },
+  ],
+  [
+    { label: "About Us", href: "/about" },
+    { label: "Reddit" },
+    { label: "LinkedIn" },
+  ],
 ];
 
 const scoreDots = [
@@ -621,11 +642,34 @@ export default function Home() {
               Subscribe
             </button>
           </div>
-          {footerColumns.map((items) => (
-            <ul key={items[0]} className="space-y-3 text-sm text-[#9BA1A6]">
+          {footerColumns.map((items, columnIndex) => (
+            <ul
+              key={columnIndex}
+              className="space-y-3 text-sm text-[#9BA1A6]"
+            >
               {items.map((item) => (
-                <li key={item}>
-                  <button className="text-left transition-colors hover:text-white">{item}</button>
+                <li key={item.label}>
+                  {item.href ? (
+                    item.href.startsWith("mailto:") ? (
+                      <a
+                        href={item.href}
+                        className="text-left transition-colors hover:text-white"
+                      >
+                        {item.label}
+                      </a>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        className="text-left transition-colors hover:text-white"
+                      >
+                        {item.label}
+                      </Link>
+                    )
+                  ) : (
+                    <span className="cursor-default opacity-60">
+                      {item.label}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -633,8 +677,12 @@ export default function Home() {
         </div>
         <div className="container mx-auto mt-12 flex max-w-7xl flex-wrap gap-4 border-t border-[#242C3D] pt-6 font-mono text-xs text-[#9BA1A6]">
           <p>(c) 2026 {BRAND.legalName}</p>
-          <p>Terms</p>
-          <p>Privacy (Updated 01/2026)</p>
+          <Link href="/terms" className="transition-colors hover:text-white">
+            Terms
+          </Link>
+          <Link href="/privacy" className="transition-colors hover:text-white">
+            Privacy (Updated {BRAND.legalUpdated})
+          </Link>
         </div>
       </footer>
     </div>
