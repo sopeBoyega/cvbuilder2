@@ -63,11 +63,11 @@ export async function initializeTransaction(
     method: "POST",
     body: JSON.stringify({
       email: input.email,
-      // When a plan is given, Paystack takes the amount from the plan; passing
-      // our own amount alongside it can conflict, so send one or the other.
-      ...(input.planCode
-        ? { plan: input.planCode }
-        : { amount: input.amountMinor, currency: input.currency }),
+      // Amount + currency must exactly match the plan's, so callers pass the
+      // plan's own amount (fetched via `fetchPlan`) — no mismatch possible.
+      amount: input.amountMinor,
+      currency: input.currency,
+      ...(input.planCode ? { plan: input.planCode } : {}),
       callback_url: input.callbackUrl,
       metadata: input.metadata,
     }),
@@ -76,6 +76,19 @@ export async function initializeTransaction(
     authorizationUrl: data.authorization_url,
     reference: data.reference,
   };
+}
+
+export type PaystackPlan = {
+  plan_code: string;
+  name: string;
+  amount: number;
+  currency: string;
+  interval: string;
+};
+
+/** Fetches a plan so we can charge its exact amount and validate the code. */
+export function fetchPlan(code: string): Promise<PaystackPlan> {
+  return request<PaystackPlan>(`/plan/${code}`);
 }
 
 export type PaystackSubscription = {

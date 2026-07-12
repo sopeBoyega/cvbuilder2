@@ -8,6 +8,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { getEntitlements } from "@/lib/billing/entitlements";
 import {
   disableSubscription,
+  fetchPlan,
   fetchSubscription,
   initializeTransaction,
 } from "@/lib/billing/paystack";
@@ -68,11 +69,15 @@ export async function startProCheckout(): Promise<CheckoutState> {
   }
 
   try {
+    // Source the amount + currency from the plan itself so they can never
+    // disagree with it (the cause of Paystack's "invalid amount"). This also
+    // validates the plan code — a wrong/stale code fails here with a clear error.
+    const plan = await fetchPlan(price.planCode);
     const origin = await siteOrigin();
     const { authorizationUrl } = await initializeTransaction({
       email: profile.email,
-      amountMinor: price.amountMinor,
-      currency,
+      amountMinor: plan.amount,
+      currency: plan.currency,
       planCode: price.planCode,
       callbackUrl: `${origin}/settings/billing?checkout=complete`,
       metadata: { profileId: profile.id, plan: "pro" },
