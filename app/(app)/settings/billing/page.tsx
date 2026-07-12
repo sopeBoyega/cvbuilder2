@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { desc, eq } from "drizzle-orm";
 import { Info } from "lucide-react";
 
+import { ActivationPoller } from "@/components/billing/activation-poller";
 import { BillingPanel } from "@/components/billing/billing-panel";
 import { getEntitlements } from "@/lib/billing/entitlements";
 import { DEFAULT_CURRENCY, PRO_MONTHLY } from "@/lib/billing/pricing";
@@ -36,11 +37,12 @@ export default async function BillingSettingsPage({
         </p>
       </header>
 
-      {checkout === "complete" ? (
+      {checkout === "complete" && view && !view.isPro ? (
         <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/10 p-4 text-sm text-on-surface">
           <Info className="mt-0.5 size-4 shrink-0 text-primary" />
-          Thanks! If your payment went through, Pro activates within a few
-          seconds — this page will reflect it once confirmed.
+          Thanks! Confirming your payment — Pro activates within a few seconds
+          and this page will update automatically.
+          <ActivationPoller />
         </div>
       ) : null}
 
