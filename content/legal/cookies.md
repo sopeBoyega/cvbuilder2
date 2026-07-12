@@ -97,4 +97,4 @@ The date at the top of this Cookie Policy indicates when it was last updated.
 
 ## WHERE CAN YOU GET FURTHER INFORMATION?
 
-If you have any questions about our use of cookies or other technologies, please email us at sopeadegboyega@gmail.com.
+If you have any questions about our use of cookies or other technologies, please email us at contact.cvbuilder@gmail.com.

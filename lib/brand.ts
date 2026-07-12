@@ -16,7 +16,7 @@ export const BRAND = {
   description:
     "Tailor your resume to a job description, check your ATS score, and prepare stronger applications.",
   /** Contact inbox used across the site and legal docs. */
-  contactEmail: "sopeadegboyega@gmail.com",
+  contactEmail: "contact.cvbuilder@gmail.com",
   /** Shown in the footer; the legal pages carry their own dates. */
   legalUpdated: "July 2026",
 } as const;

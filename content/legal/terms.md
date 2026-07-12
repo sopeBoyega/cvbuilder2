@@ -77,7 +77,7 @@ We reserve the right to suspend or terminate accounts, remove or reclaim usernam
 
 You may cancel a recurring subscription at any time through your account settings or by contacting us. Cancellation takes effect at the end of your current billing period. After cancellation, you will retain access to paid features until the end of the period for which you have already paid, after which your account will revert to the free tier.
 
-**Refunds.** Except where required by applicable law, fees are non-refundable and there are no refunds or credits for partially used periods, one-time purchases, or unused features. If you believe you have been charged in error, please contact us at sopeadegboyega@gmail.com and we will review your request.
+**Refunds.** Except where required by applicable law, fees are non-refundable and there are no refunds or credits for partially used periods, one-time purchases, or unused features. If you believe you have been charged in error, please contact us at contact.cvbuilder@gmail.com and we will review your request.
 
 ---
 
@@ -193,5 +193,5 @@ These Terms and any policies or operating rules posted by us constitute the enti
 In order to resolve a complaint regarding the Services, or to receive further information regarding use of the Services, please contact us at:
 
 CV Builder
-Email: sopeadegboyega@gmail.com
+Email: contact.cvbuilder@gmail.com
 Nigeria

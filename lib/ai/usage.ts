@@ -1,5 +1,6 @@
 import { and, eq, gte, sql } from "drizzle-orm";
 
+import { isPro } from "@/lib/billing/entitlements";
 import { db } from "@/lib/db";
 import { aiGenerations } from "@/lib/db/schema";
 
@@ -50,6 +51,8 @@ export async function usageInLastDay(profileId: string): Promise<number> {
  * Upstash atomic counter would buy later.
  */
 export async function assertWithinQuota(profileId: string): Promise<void> {
+  // Pro is unlimited — the daily cap only protects the free tier.
+  if (await isPro(profileId)) return;
   if ((await usageInLastDay(profileId)) >= AI_DAILY_LIMIT) {
     throw new QuotaExceededError();
   }
