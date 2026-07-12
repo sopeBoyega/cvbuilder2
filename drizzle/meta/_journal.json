@@ -43,6 +43,13 @@
       "when": 1783723839829,
       "tag": "0005_late_human_cannonball",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783878207137,
+      "tag": "0006_eager_excalibur",
+      "breakpoints": true
     }
   ]
 }

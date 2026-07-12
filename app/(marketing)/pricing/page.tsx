@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Check, Sparkles, Zap } from "lucide-react";
 
 import { MarketingHeader } from "@/components/marketing/marketing-header";
+import { DEFAULT_CURRENCY, PRO_MONTHLY } from "@/lib/billing/pricing";
 import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
@@ -22,12 +23,14 @@ type Tier = {
   href: string;
   featured?: boolean;
   note?: string;
+  /** Renders a muted, non-clickable CTA for tiers not yet purchasable. */
+  comingSoon?: boolean;
 };
 
 const TIERS: Tier[] = [
   {
     name: "Free",
-    price: "$0",
+    price: "Free",
     cadence: "forever",
     tagline: "Everything you need to land your next application.",
     features: [
@@ -42,8 +45,8 @@ const TIERS: Tier[] = [
   },
   {
     name: "Pro",
-    price: "$18",
-    cadence: "/ month",
+    price: PRO_MONTHLY[DEFAULT_CURRENCY].display,
+    cadence: PRO_MONTHLY[DEFAULT_CURRENCY].period,
     tagline: "For an active search — unlimited, with the AI and deep scans.",
     featured: true,
     features: [
@@ -54,13 +57,12 @@ const TIERS: Tier[] = [
       "PDF and Word export, all templates",
       "Priority processing",
     ],
-    cta: "Start free",
-    href: "/sign-up",
-    note: "or $150 / year",
+    cta: "Upgrade to Pro",
+    href: "/settings/billing",
   },
   {
     name: "Job Search Pass",
-    price: "$39",
+    price: "Soon",
     cadence: "one-time",
     tagline: "All of Pro for 60 days. No subscription, no auto-renew.",
     features: [
@@ -69,8 +71,9 @@ const TIERS: Tier[] = [
       "One payment — cancels itself",
       "Perfect for a focused sprint",
     ],
-    cta: "Start free",
-    href: "/sign-up",
+    cta: "Coming soon",
+    href: "/pricing",
+    comingSoon: true,
   },
 ];
 
@@ -91,11 +94,11 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* Honest status banner: billing isn't live yet. */}
-        <div className="mx-auto mb-12 flex max-w-2xl items-center justify-center gap-2 rounded-lg border border-coral-hi/20 bg-coral-hi/10 px-4 py-2 text-center text-sm text-coral-hi">
+        {/* Status banner. */}
+        <div className="mx-auto mb-12 flex max-w-2xl items-center justify-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-4 py-2 text-center text-sm text-primary">
           <Sparkles className="size-4 shrink-0" />
-          Paid plans launch soon. Everyone starts on the free tier today —
-          you&apos;ll be able to upgrade in-app.
+          Pro is available now. The Job Search Pass and Lifetime deal are coming
+          soon.
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -147,18 +150,24 @@ export default function PricingPage() {
                 ))}
               </ul>
 
-              <Link
-                href={tier.href}
-                className={cn(
-                  "mt-8 flex items-center justify-center gap-2 rounded-lg px-6 py-3 font-semibold transition-all",
-                  tier.featured
-                    ? "bg-primary text-on-primary hover:brightness-110"
-                    : "border border-border bg-surface text-on-surface hover:border-primary hover:text-primary",
-                )}
-              >
-                {tier.cta}
-                <ArrowRight className="size-4" />
-              </Link>
+              {tier.comingSoon ? (
+                <span className="mt-8 flex cursor-default items-center justify-center gap-2 rounded-lg border border-border bg-surface-container px-6 py-3 font-semibold text-on-surface-variant">
+                  {tier.cta}
+                </span>
+              ) : (
+                <Link
+                  href={tier.href}
+                  className={cn(
+                    "mt-8 flex items-center justify-center gap-2 rounded-lg px-6 py-3 font-semibold transition-all",
+                    tier.featured
+                      ? "bg-primary text-on-primary hover:brightness-110"
+                      : "border border-border bg-surface text-on-surface hover:border-primary hover:text-primary",
+                  )}
+                >
+                  {tier.cta}
+                  <ArrowRight className="size-4" />
+                </Link>
+              )}
             </div>
           ))}
         </div>

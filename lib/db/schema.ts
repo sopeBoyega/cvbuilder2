@@ -174,3 +174,40 @@ export const applications = pgTable("applications", {
     .defaultNow()
     .notNull(),
 });
+
+/**
+ * A paid entitlement bought through Paystack. Kept general enough to cover both
+ * recurring subscriptions and (later) one-time passes/lifetime:
+ *
+ * - `source` distinguishes "subscription" from "pass"/"lifetime".
+ * - `currentPeriodEnd` is when access lapses; null means it never expires
+ *   (lifetime). A profile is Pro when a row is active and not past its end.
+ * - Paystack codes let the webhook reconcile events and let us cancel.
+ *
+ * Text columns validated by the Zod enums in `lib/validation/entitlements.ts`
+ * (same no-pg-enum pattern used elsewhere).
+ */
+export const subscriptions = pgTable("subscriptions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  profileId: uuid("profile_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  /** The entitlement tier this grants. */
+  plan: text("plan").notNull().default("pro"),
+  /** "subscription" | "pass" | "lifetime". */
+  source: text("source").notNull().default("subscription"),
+  /** "active" | "non_renewing" | "past_due" | "cancelled" | "expired" | "pending". */
+  status: text("status").notNull().default("pending"),
+  currency: text("currency").notNull(),
+  paystackCustomerCode: text("paystack_customer_code"),
+  paystackSubscriptionCode: text("paystack_subscription_code"),
+  paystackPlanCode: text("paystack_plan_code"),
+  /** Null for lifetime; otherwise when access lapses if not renewed. */
+  currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
