@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { ScoreRing } from "@/components/score-ring";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 
 export type VariantView = {
@@ -80,6 +81,25 @@ export function ResumeLibrary({ groups }: { groups: ResumeGroup[] }) {
       return b.updatedAtIso.localeCompare(a.updatedAtIso);
     });
   }, [groups, query, sort]);
+
+  // First visit: no filter bar over an empty grid — one clear starting point.
+  if (groups.length === 0) {
+    return (
+      <EmptyState
+        icon={FileText}
+        title="Your library is empty"
+        description="Base resumes and their AI-tailored variants will be organized here, each with its ATS score."
+      >
+        <Link
+          href="/onboarding"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-semibold text-on-primary transition-all hover:brightness-110"
+        >
+          <Plus className="size-4" />
+          Create your first resume
+        </Link>
+      </EmptyState>
+    );
+  }
 
   return (
     <div className="space-y-6">

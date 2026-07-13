@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -11,13 +11,15 @@ import {
   Brain,
   Check,
   Info,
-  Loader2,
+  RotateCcw,
   Sparkles,
   TriangleAlert,
   X,
 } from "lucide-react";
 
 import { ScoreRing } from "@/components/score-ring";
+import { AiLoader } from "@/components/ui/ai-loader";
+import { ErrorState, ErrorStateAction } from "@/components/ui/error-state";
 import { runAnalysis } from "@/lib/actions/tailor";
 import { extractJobKeywords } from "@/lib/ats";
 import { useWizard, useWizardHydrated } from "@/lib/stores/wizard";
@@ -54,6 +56,14 @@ export function AnalysisStep() {
   // Keyed so StrictMode's double-invoke doesn't record two analyses rows.
   const ranFor = useRef<string | null>(null);
 
+  const run = useCallback(() => {
+    if (!jobId || !resumeId) return;
+    runAnalysis({ jobId, resumeId }).then((result) => {
+      if (result.ok) setData(result);
+      else setError(result.error);
+    });
+  }, [jobId, resumeId]);
+
   useEffect(() => {
     if (!hydrated) return;
     if (!jobId || !resumeId) {
@@ -65,11 +75,13 @@ export function AnalysisStep() {
     if (ranFor.current === key) return;
     ranFor.current = key;
 
-    runAnalysis({ jobId, resumeId }).then((result) => {
-      if (result.ok) setData(result);
-      else setError(result.error);
-    });
-  }, [hydrated, jobId, resumeId, router]);
+    run();
+  }, [hydrated, jobId, resumeId, router, run]);
+
+  function retry() {
+    setError(null);
+    run();
+  }
 
   /*
    * Which keywords are "critical" (a curated skill) versus merely frequent.
@@ -87,21 +99,37 @@ export function AnalysisStep() {
 
   if (error) {
     return (
-      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6">
-        <p className="flex items-start gap-2 text-sm text-destructive">
-          <AlertCircle className="mt-0.5 size-4 shrink-0" />
-          {error}
-        </p>
-      </div>
+      <ErrorState
+        title="Analysis didn't finish"
+        description={error}
+        className="my-16"
+      >
+        <ErrorStateAction onClick={retry}>
+          <RotateCcw className="size-4" />
+          Try again
+        </ErrorStateAction>
+        <Link
+          href="/tailor"
+          className="flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm text-on-surface-variant transition-colors hover:text-on-surface"
+        >
+          Back to job details
+        </Link>
+      </ErrorState>
     );
   }
 
   if (!data) {
     return (
-      <div className="flex flex-col items-center gap-4 py-24 text-on-surface-variant">
-        <Loader2 className="size-8 animate-spin text-primary" />
-        <p className="text-sm">Scoring your resume against the job…</p>
-      </div>
+      <AiLoader
+        title="Scoring your resume"
+        messages={[
+          "Extracting keywords from the job description…",
+          "Matching them against your resume…",
+          "Comparing semantic similarity…",
+          "Checking structure and formatting…",
+          "Building your explainable score…",
+        ]}
+      />
     );
   }
 

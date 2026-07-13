@@ -11,6 +11,7 @@ import {
   UploadCloud,
 } from "lucide-react";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { db } from "@/lib/db";
 import { profiles, resumes } from "@/lib/db/schema";
 import { cn, timeAgo } from "@/lib/utils";
@@ -187,18 +188,12 @@ function EmptyResumesState() {
   ];
 
   return (
-    <div className="rounded-xl border border-dashed border-border bg-surface p-8 text-center md:p-12">
-      <div className="mx-auto mb-6 flex size-14 items-center justify-center rounded-2xl border border-border bg-surface-raised text-primary">
-        <FileText className="size-7" />
-      </div>
-      <h4 className="font-heading text-2xl font-semibold text-on-background">
-        No resumes yet
-      </h4>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-on-surface-variant">
-        Your resumes and their ATS scores will show up here. Create your first
-        one to get started.
-      </p>
-      <div className="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-4 text-left sm:grid-cols-2">
+    <EmptyState
+      icon={FileText}
+      title="No resumes yet"
+      description="Your resumes and their ATS scores will show up here. Create your first one to get started."
+    >
+      <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4 text-left sm:grid-cols-2">
         {options.map((option) => (
           <Link
             key={option.title}
@@ -222,6 +217,6 @@ function EmptyResumesState() {
           </Link>
         ))}
       </div>
-    </div>
+    </EmptyState>
   );
 }

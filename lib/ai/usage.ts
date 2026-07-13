@@ -1,5 +1,6 @@
 import { and, eq, gte, sql } from "drizzle-orm";
 
+import { QUOTA_ERROR_MESSAGE } from "@/lib/ai/quota";
 import { isPro } from "@/lib/billing/entitlements";
 import { db } from "@/lib/db";
 import { aiGenerations } from "@/lib/db/schema";
@@ -20,9 +21,7 @@ export type AiKind =
 export const AI_DAILY_LIMIT = 25;
 
 export class QuotaExceededError extends Error {
-  constructor(
-    message = "You've reached today's AI limit. It resets in 24 hours.",
-  ) {
+  constructor(message = QUOTA_ERROR_MESSAGE) {
     super(message);
     this.name = "QuotaExceededError";
   }

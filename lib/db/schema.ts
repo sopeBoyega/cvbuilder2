@@ -5,6 +5,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
   vector,
 } from "drizzle-orm/pg-core";
@@ -211,3 +212,27 @@ export const subscriptions = pgTable("subscriptions", {
     .defaultNow()
     .notNull(),
 });
+
+/**
+ * A marketing lead captured pre-signup (top of the funnel, e.g. on the free
+ * ATS-checker results). Deliberately stores the email only — never the resume
+ * or job text, which the checker page promises are not kept. Emails are
+ * lowercased app-side; repeat submissions collapse on (email, source).
+ */
+export const leads = pgTable(
+  "leads",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    email: text("email").notNull(),
+    /** Where it was captured: "ats_checker" (Zod-validated app-side). */
+    source: text("source").notNull(),
+    /** Keyword coverage the visitor saw at capture, for funnel context. */
+    checkerScore: integer("checker_score"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("leads_email_source_idx").on(table.email, table.source),
+  ],
+);
