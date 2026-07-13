@@ -11,7 +11,9 @@ export type AiKind =
   | "gap_questions"
   | "answer_draft"
   | "bullet_rewrite"
-  | "embedding";
+  | "embedding"
+  | "cover_letter"
+  | "interview_prep";
 
 /**
  * Max AI generations per profile per rolling 24h on the free plan. Deliberately

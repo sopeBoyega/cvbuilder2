@@ -106,9 +106,32 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
       `NEXT_PUBLIC_POSTHOG_KEY` (+ optional `NEXT_PUBLIC_POSTHOG_HOST`) in
       `.env.local` and Vercel** — until then events are dropped by design.
     - `BRAND.promise` updated to the provisional §4B line (About page shows it).
-  - NOT STARTED: cover letter generator, interview prep, insights/analytics,
-    Job Search Pass + Lifetime one-time purchases, final landing copy
-    (messaging house), §7 privacy corrections.
+  - DONE (2026-07-13): **free-tier enforcement** — the /pricing promises are now
+    real code: `assertCanTailor` (3 tailored resumes/calendar month for free,
+    `lib/billing/entitlements.ts`, enforced in `saveTailoredResume` with an
+    `UpgradePrompt` in the editor via `lib/billing/limits.ts` matchers) and the
+    DOCX route now 403s for free users (locked "DOCX · Pro" button in
+    `ExportControl`, `isPro` threaded from server pages incl. the wizard).
+  - DONE (2026-07-13): **cover letter generator** (Pro) — `cover_letters` table
+    (migration `0008`, applied), `lib/ai/cover-letter.ts` (generateText,
+    tone/length knobs, grounded-in-resume rules), actions in
+    `lib/actions/cover-letters.ts` (generate/regenerate/save, Pro-gated,
+    quota-logged as kind `cover_letter`), editor page `/cover-letters/[id]`
+    (paper-sheet textarea + tone/length + regenerate, per the owner's Stitch
+    design), entry = "Draft a cover letter" on the wizard finalize step
+    (UpgradePrompt for free users).
+  - DONE (2026-07-13): **interview prep** (Pro) — `interview_preps` table (one
+    set per application, upsert on regenerate), `lib/ai/interview-prep.ts`
+    (generateObject → `InterviewQuestions`: behavioral/technical/role +
+    coaching rationale), action `generateInterviewPrep` (Pro-gated, kind
+    `interview_prep`), page `/interview-prep/[applicationId]` (grouped
+    expandable cards per the Stitch design), entry = prep icon on each kanban
+    card. Owner's design pack: `C:\Users\User1\Downloads\
+    stitch_constellation_resume_system` (application detail, deep scan,
+    insights, settings etc. still unbuilt — next phase).
+  - NOT STARTED: insights/analytics, application detail hub, Job Search Pass +
+    Lifetime purchases, final landing copy (messaging house), §7 privacy
+    corrections.
 
 ## 4. Architecture map
 
@@ -226,10 +249,14 @@ Once Pro is confirmed active, `isPro()` gates the AI quota
 - **PostHog needs its key**: code is wired (`lib/analytics.ts`), but
   `NEXT_PUBLIC_POSTHOG_KEY` must be set in `.env.local` + Vercel or the funnel
   still measures nothing.
-- **[rebrand] Pricing page over-claims Pro**: the Pro tier lists "Cover letters
-  & interview prep" (`app/(marketing)/pricing/page.tsx`) but neither is built.
-  Owner decision: pull the bullets or mark "coming soon" — a paid tier's
-  promises shouldn't be edited silently by the assistant.
+- ~~[pricing] unreal Pro bullets~~ RESOLVED 2026-07-13: "Priority processing"
+  and "all templates" removed from /pricing at owner's direction; every
+  remaining Pro bullet is enforced in code ("Cover letters & interview prep"
+  built + Pro-gated same day).
+- **AI generation for cover letters / interview prep never exercised live**
+  by the assistant (no Gemini key in sandbox). Owner: as Pro, run finalize →
+  "Draft a cover letter" and a kanban card → prep → Generate; confirm
+  `ai_generations` rows with kinds `cover_letter` / `interview_prep`.
 - **[rebrand] Privacy corrections for counsel** (`docs/rebranding.md` §7 + new
   findings): categories table all "NO", blanket "no sensitive info", AI
   providers listed as Anthropic/Google/OpenAI (reality: Gemini only), Meta

@@ -1,25 +1,32 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronDown, Download } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, Download, Lock } from "lucide-react";
 
 import { setResumeTemplate } from "@/lib/actions/resume";
+import { DOCX_PRO_MESSAGE } from "@/lib/billing/limits";
 import { DEFAULT_TEMPLATE_ID, TEMPLATES } from "@/lib/documents/templates";
 
 /**
  * Template picker + download. The download is a plain anchor to the route
  * handler rather than a fetch+blob dance — the browser already knows how to
  * save a `Content-Disposition: attachment` response.
+ *
+ * DOCX is Pro-only: free users get a locked button that routes to billing
+ * (the API route enforces the same rule server-side).
  */
 export function ExportControl({
   resumeId,
   versionId,
   initialTemplateId,
+  isPro,
 }: {
   resumeId: string;
   /** Export a specific version (a tailored variant) instead of the base. */
   versionId?: string;
   initialTemplateId?: string | null;
+  isPro: boolean;
 }) {
   const [templateId, setTemplateId] = useState(
     initialTemplateId ?? DEFAULT_TEMPLATE_ID,
@@ -68,13 +75,24 @@ export function ExportControl({
         Download PDF
       </a>
 
-      <a
-        href={`/api/resumes/${resumeId}/docx?${docxParams.toString()}`}
-        className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-on-surface transition-all hover:border-primary hover:text-primary"
-      >
-        <Download className="size-4" />
-        Download DOCX
-      </a>
+      {isPro ? (
+        <a
+          href={`/api/resumes/${resumeId}/docx?${docxParams.toString()}`}
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-semibold text-on-surface transition-all hover:border-primary hover:text-primary"
+        >
+          <Download className="size-4" />
+          Download DOCX
+        </a>
+      ) : (
+        <Link
+          href="/settings/billing"
+          title={DOCX_PRO_MESSAGE}
+          className="inline-flex items-center gap-2 rounded-lg border border-indigo-hi/30 bg-indigo-hi/10 px-4 py-2 text-sm font-semibold text-indigo-hi transition-all hover:bg-indigo-hi/20"
+        >
+          <Lock className="size-4" />
+          DOCX · Pro
+        </Link>
+      )}
     </div>
   );
 }

@@ -1,8 +1,8 @@
-# Read this first
+<!-- # Read this first
 
 **Before doing any work, read [`docs/PROGRESS.md`](docs/PROGRESS.md).** It is the
 project's running handoff: current phase status, hard constraints, the active
-task (Paystack Pro subscription debugging), and the TODO backlog.
+work (Phase 3 + repositioning per docs/rebranding.md), and the TODO backlog. -->
 
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know

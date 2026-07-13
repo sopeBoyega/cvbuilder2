@@ -4,9 +4,11 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Check, Loader2, Plus, Save, Trash2 } from "lucide-react";
 
+import { UpgradePrompt } from "@/components/billing/upgrade-prompt";
 import { ScoreRing } from "@/components/score-ring";
 import { saveResumeContent } from "@/lib/actions/resume";
 import { saveTailoredResume } from "@/lib/actions/tailor";
+import { isTailorLimitError } from "@/lib/billing/limits";
 import { analyzeResume } from "@/lib/ats";
 import type { GapAnswer } from "@/lib/validation/ai";
 import { ResumeContent, type WorkEntry } from "@/lib/validation/resume";
@@ -210,8 +212,9 @@ export function ResumeEditor({
           ) : (
             <>
               <p className="mb-3 text-xs text-on-surface-variant">
-                Click a keyword to add it to your skills — only where it&apos;s
-                truthful. It turns green once it appears in your resume.
+                Click a keyword to add it to your skills, but only where
+                it&apos;s truthful. It turns green once it appears in your
+                resume.
               </p>
               <div className="flex flex-wrap gap-2">
                 {analysis.missing.map((term) => (
@@ -294,10 +297,21 @@ export function ResumeEditor({
       ) : null}
 
       {error ? (
-        <p role="alert" className="flex items-start gap-2 text-sm text-destructive">
-          <AlertCircle className="mt-0.5 size-4 shrink-0" />
-          {error}
-        </p>
+        isTailorLimitError(error) ? (
+          // Monthly free cap hit on save — pitch Pro; the draft stays intact.
+          <UpgradePrompt
+            title="That's your free tailoring for this month"
+            description={error}
+          />
+        ) : (
+          <p
+            role="alert"
+            className="flex items-start gap-2 text-sm text-destructive"
+          >
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            {error}
+          </p>
+        )
       ) : null}
 
       {/* Basics */}

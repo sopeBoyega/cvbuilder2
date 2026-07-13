@@ -78,7 +78,7 @@ export function QuestionsStep() {
       return (
         <UpgradePrompt
           title="You've used today's free AI runs"
-          description="Upgrade to keep generating gap questions and drafts, or continue in the editor — your analysis and score are untouched."
+          description="Upgrade to keep generating gap questions and drafts, or continue in the editor. Your analysis and score are untouched."
           dismissLabel="Continue to editor"
           onDismiss={continueToEditor}
           className="my-16"
@@ -182,7 +182,7 @@ export function QuestionsStep() {
 
             <div className="mt-3 flex items-center justify-between gap-4">
               <p className="text-xs text-on-surface-variant">
-                {draftError ?? "A draft is a starting point — edit it to be true."}
+                {draftError ?? "A draft is a starting point. Edit it to be true."}
               </p>
               <button
                 type="button"

@@ -59,7 +59,7 @@ export async function importResume(
 
   if (!profile) {
     return {
-      error: "Your profile isn't ready yet — give it a moment and try again.",
+      error: "Your profile isn't ready yet. Give it a moment and try again.",
     };
   }
 

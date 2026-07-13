@@ -32,7 +32,7 @@ export default async function BillingSettingsPage({
           Billing
         </h1>
         <p className="mt-2 text-on-surface-variant">
-          Manage your plan. Free stays free — upgrade when a serious search
+          Manage your plan. Free stays free. Upgrade when a serious search
           makes it worth it.
         </p>
       </header>
@@ -40,7 +40,7 @@ export default async function BillingSettingsPage({
       {checkout === "complete" && view && !view.isPro ? (
         <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/10 p-4 text-sm text-on-surface">
           <Info className="mt-0.5 size-4 shrink-0 text-primary" />
-          Thanks! Confirming your payment — Pro activates within a few seconds
+          Thanks! Confirming your payment. Pro activates within a few seconds
           and this page will update automatically.
           <ActivationPoller />
         </div>
@@ -56,7 +56,7 @@ export default async function BillingSettingsPage({
         />
       ) : (
         <p className="text-sm text-on-surface-variant">
-          Your profile isn&apos;t ready yet — refresh in a moment.
+          Your profile isn&apos;t ready yet. Refresh in a moment.
         </p>
       )}
     </div>

@@ -294,7 +294,7 @@ function ResumeGroupCard({ group }: { group: ResumeGroup }) {
                     <div className="text-right">
                       <p className="font-mono text-xs text-on-surface">
                         {variant.atsScore === null
-                          ? "—"
+                          ? "Not scored"
                           : `${variant.atsScore}% Match`}
                       </p>
                       <p className="text-[10px] uppercase text-on-surface-variant">

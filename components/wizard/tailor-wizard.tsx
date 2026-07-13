@@ -21,10 +21,13 @@ export function TailorWizard({
   step,
   resumes,
   jobs,
+  isPro,
 }: {
   step: WizardStep;
   resumes: ResumeOption[];
   jobs: JobOption[];
+  /** Resolved server-side; gates the DOCX export on the finalize step. */
+  isPro: boolean;
 }) {
   const router = useRouter();
   const hydrated = useWizardHydrated();
@@ -56,7 +59,7 @@ export function TailorWizard({
         {step === "analysis" ? <AnalysisStep /> : null}
         {step === "questions" ? <QuestionsStep /> : null}
         {step === "edit" ? <EditStep /> : null}
-        {step === "finalize" ? <FinalizeStep /> : null}
+        {step === "finalize" ? <FinalizeStep isPro={isPro} /> : null}
       </div>
     </div>
   );

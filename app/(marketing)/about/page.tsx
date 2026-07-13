@@ -16,7 +16,7 @@ export default function AboutPage() {
       <p>
         Most résumés are read by software before a person ever sees them. An
         applicant tracking system scans for the right keywords, a parseable
-        structure, and a clean format — and quietly filters out the rest.{" "}
+        structure, and a clean format, and quietly filters out the rest.{" "}
         {BRAND.name} exists to help you get past that first reader.
       </p>
 
@@ -24,7 +24,7 @@ export default function AboutPage() {
       <p>
         You paste a job description and pick a résumé. We show your ATS score
         before you apply, spell out exactly which keywords matched and which are
-        missing, and help you tailor the résumé — then export a clean,
+        missing, and help you tailor the résumé. Then you export a clean,
         selectable-text file an ATS can actually read.
       </p>
 
@@ -37,7 +37,7 @@ export default function AboutPage() {
         </li>
         <li>
           <strong>Deterministic where it counts.</strong> The core scoring is
-          transparent logic, not a black box — the same input always gives the
+          transparent logic, not a black box: the same input always gives the
           same result.
         </li>
         <li>
@@ -50,7 +50,7 @@ export default function AboutPage() {
       <h2>Who it&apos;s for</h2>
       <p>
         Job seekers applying online, where an ATS is the first thing between you
-        and a callback — from recent graduates to mid-career switchers. Start
+        and a callback, from recent graduates to mid-career switchers. Start
         free; upgrade only when a serious search makes it worth it.
       </p>
 

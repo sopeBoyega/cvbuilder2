@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { ArrowLeft, Mail, MapPin, Phone, SquarePen } from "lucide-react";
 
+import { isPro } from "@/lib/billing/entitlements";
 import { db } from "@/lib/db";
 import { profiles, resumeVersions, resumes } from "@/lib/db/schema";
 import { ExportControl } from "@/components/resumes/export-control";
@@ -54,6 +55,7 @@ export default async function ResumeEditorPage({
 
   const parsed = version ? ResumeContent.safeParse(version.content) : null;
   const content = parsed?.success ? parsed.data : null;
+  const pro = await isPro(profile.id);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-4 md:p-8">
@@ -83,6 +85,7 @@ export default async function ResumeEditorPage({
             <ExportControl
               resumeId={resume.id}
               initialTemplateId={resume.templateId}
+              isPro={pro}
             />
           ) : null}
         </div>
@@ -246,7 +249,7 @@ function ResumeView({
             {content.certifications.map((entry, index) => (
               <li key={`${entry.name}-${index}`}>
                 {entry.name}
-                {entry.issuer ? ` — ${entry.issuer}` : ""}
+                {entry.issuer ? ` · ${entry.issuer}` : ""}
                 {entry.year ? ` (${entry.year})` : ""}
               </li>
             ))}

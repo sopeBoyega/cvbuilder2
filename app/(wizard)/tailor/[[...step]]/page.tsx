@@ -4,6 +4,7 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 
 import { TailorWizard } from "@/components/wizard/tailor-wizard";
 import type { JobOption, ResumeOption } from "@/components/wizard/resume-step";
+import { isPro } from "@/lib/billing/entitlements";
 import { db } from "@/lib/db";
 import { jobs, profiles, resumeVersions, resumes } from "@/lib/db/schema";
 import { timeAgo } from "@/lib/utils";
@@ -24,26 +25,32 @@ export default async function TailorWizardPage({
   const current = step?.[0] ?? "job";
   if (!isWizardStep(current)) notFound();
 
-  const { resumeOptions, jobOptions } = await loadWizardData();
+  const { resumeOptions, jobOptions, pro } = await loadWizardData();
 
   return (
-    <TailorWizard step={current} resumes={resumeOptions} jobs={jobOptions} />
+    <TailorWizard
+      step={current}
+      resumes={resumeOptions}
+      jobs={jobOptions}
+      isPro={pro}
+    />
   );
 }
 
 async function loadWizardData(): Promise<{
   resumeOptions: ResumeOption[];
   jobOptions: JobOption[];
+  pro: boolean;
 }> {
   const { userId } = await auth();
-  if (!userId) return { resumeOptions: [], jobOptions: [] };
+  if (!userId) return { resumeOptions: [], jobOptions: [], pro: false };
 
   const [profile] = await db
     .select()
     .from(profiles)
     .where(eq(profiles.clerkUserId, userId))
     .limit(1);
-  if (!profile) return { resumeOptions: [], jobOptions: [] };
+  if (!profile) return { resumeOptions: [], jobOptions: [], pro: false };
 
   const [rows, jobRows] = await Promise.all([
     db
@@ -90,6 +97,7 @@ async function loadWizardData(): Promise<{
       id: job.id,
       label: job.company ? `${job.title} · ${job.company}` : job.title,
     })),
+    pro: await isPro(profile.id),
   };
 }
 

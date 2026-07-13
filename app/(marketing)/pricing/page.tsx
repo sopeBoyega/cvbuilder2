@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = {
   title: `Pricing | ${BRAND.name}`,
   description:
-    "Start free forever. Upgrade to Pro for unlimited tailoring, or grab a one-time Job Search Pass for an intense search — no subscription.",
+    "Start free forever. Upgrade to Pro for unlimited tailoring, or grab a one-time Job Search Pass for an intense search with no subscription.",
 };
 
 type Tier = {
@@ -47,15 +47,14 @@ const TIERS: Tier[] = [
     name: "Pro",
     price: PRO_MONTHLY[DEFAULT_CURRENCY].display,
     cadence: PRO_MONTHLY[DEFAULT_CURRENCY].period,
-    tagline: "For an active search — unlimited, with the AI and deep scans.",
+    tagline: "For an active search: unlimited, with the AI and deep scans.",
     featured: true,
     features: [
       "Unlimited tailored resumes",
       "AI gap questions & bullet drafting",
       "Semantic (AI) match scoring",
       "Cover letters & interview prep",
-      "PDF and Word export, all templates",
-      "Priority processing",
+      "PDF and Word export",
     ],
     cta: "Upgrade to Pro",
     href: "/settings/billing",
@@ -68,7 +67,7 @@ const TIERS: Tier[] = [
     features: [
       "Everything in Pro",
       "Full access for 60 days",
-      "One payment — cancels itself",
+      "One payment that cancels itself",
       "Perfect for a focused sprint",
     ],
     cta: "Coming soon",
@@ -88,7 +87,7 @@ export default function PricingPage() {
             Start free. Upgrade only when it pays for itself.
           </h1>
           <p className="mt-4 text-base leading-6 text-on-surface-variant">
-            The free tier is a real product, not a trial — enough to tailor and
+            The free tier is a real product, not a trial. It&apos;s enough to tailor and
             apply. Pro and the Pass unlock unlimited AI when your search heats
             up.
           </p>
@@ -186,7 +185,7 @@ export default function PricingPage() {
                 </span>
               </h2>
               <p className="mt-2 max-w-xl text-sm leading-6 text-on-surface-variant">
-                A limited run of lifetime Pro access for early supporters — one
+                A limited run of lifetime Pro access for early supporters: one
                 payment, every future Pro feature, forever. In exchange we ask
                 for honest feedback and a review.
               </p>

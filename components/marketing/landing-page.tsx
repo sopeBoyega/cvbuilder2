@@ -110,7 +110,7 @@ function ScoreRingPreview() {
           <div className="h-2 w-[89%] rounded-full bg-primary" />
         </div>
         <p className="mt-3 text-sm text-on-surface">
-          Every score shows its breakdown — matched terms, real gaps, and what
+          Every score shows its breakdown: matched terms, real gaps, and what
           each check weighs. No black box.
         </p>
       </div>
@@ -174,7 +174,7 @@ export function LandingPage({
                   <Sparkles className="size-3 text-background" />
                 </div>
                 <span className="font-mono text-xs text-on-surface-variant">
-                  For early-career tech — your first role or your next one
+                  For early-career tech: your first role or your next one
                 </span>
               </div>
               <h1 className="mb-6 font-heading text-5xl font-bold leading-tight tracking-tight md:text-7xl">
@@ -185,10 +185,10 @@ export function LandingPage({
                 </span>
               </h1>
               <p className="mb-10 max-w-2xl text-lg leading-relaxed text-on-surface-variant md:text-xl">
-                Early-career tech is a numbers game — dozens of applications,
+                Early-career tech is a numbers game: dozens of applications,
                 each screened by software before a human reads it. {BRAND.name}{" "}
                 tailors your resume to each job description with a score you
-                can see the reasoning behind. ATS-safe, in minutes — without
+                can see the reasoning behind. ATS-safe, in minutes, without
                 keyword-stuffing yourself into rejection.
               </p>
               <div className="flex max-w-2xl flex-col gap-4 sm:flex-row">
@@ -227,7 +227,7 @@ export function LandingPage({
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-on-surface-variant">
               Most tools shout that a robot rejected you, then &ldquo;fix your
-              score&rdquo; by stuffing in keywords — which can make your resume
+              score&rdquo; by stuffing in keywords, which can make your resume
               worse to the human who reads it next. And generic AI writes the
               same bland bullets for every applicant. We took the other path:
               make the resume genuinely stronger for the specific job, keep it
@@ -245,19 +245,19 @@ export function LandingPage({
                   icon: ScanSearch,
                   accent: "text-primary",
                   title: "Job-specific, not generic",
-                  copy: "Tailored against the actual job description — keyword and semantic matching, re-scored live as you edit. Not one resume blasted everywhere.",
+                  copy: "Tailored against the actual job description with keyword and semantic matching, re-scored live as you edit. Not one resume blasted everywhere.",
                 },
                 {
                   icon: FileText,
                   accent: "text-coral-hi",
                   title: "Actually ATS-safe",
-                  copy: "Real, selectable-text PDF and Word exports that parsers read cleanly — single column, no tables, no text baked into images.",
+                  copy: "Real, selectable-text PDF and Word exports that parsers read cleanly: single column, no tables, no text baked into images.",
                 },
                 {
                   icon: ShieldCheck,
                   accent: "text-indigo-hi",
                   title: "Transparent and honest",
-                  copy: "Every score ships with its breakdown and weights. We optimize for a better resume, not a gamed number — even when the number would look nicer.",
+                  copy: "Every score ships with its breakdown and weights. We optimize for a better resume, not a gamed number, even when the number would look nicer.",
                 },
               ].map((pillar) => (
                 <div
@@ -300,7 +300,7 @@ export function LandingPage({
                   icon: Upload,
                   step: "02",
                   title: "Upload your resume",
-                  copy: "PDF or Word — we pull the text and structure it automatically. Edit anything we got wrong.",
+                  copy: "PDF or Word. We pull the text and structure it automatically, and you can edit anything we got wrong.",
                 },
                 {
                   icon: Gauge,
@@ -344,7 +344,7 @@ export function LandingPage({
               <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-on-surface-variant">
                 We don&apos;t invent testimonials. As beta users share their
                 before → after scores and interview results, they&apos;ll
-                appear in this space — with permission, unedited.
+                appear in this space, with permission, unedited.
               </p>
               <a
                 href={`mailto:${BRAND.contactEmail}?subject=My%20${BRAND.name}%20score%20jump`}
@@ -482,7 +482,7 @@ export function LandingPage({
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-on-surface-variant">
                   Your resume text is processed by Google&apos;s Gemini API to
-                  power parsing, questions, and semantic scoring — that&apos;s
+                  power parsing, questions, and semantic scoring. That&apos;s
                   the only AI provider we use. The free checker runs without
                   storing what you paste. Your saved resumes are yours: delete
                   them anytime. Details in the{" "}
@@ -505,11 +505,11 @@ export function LandingPage({
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(119,220,132,0.14),transparent_24%),radial-gradient(circle_at_45%_60%,rgba(148,154,255,0.12),transparent_28%)]" />
           <div className="container relative mx-auto max-w-4xl text-center">
             <h2 className="font-heading text-4xl font-bold leading-tight tracking-tight md:text-6xl">
-              See where your resume stands — free, in a minute.
+              See where your resume stands. Free, in a minute.
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-on-surface-variant">
               Paste a job description and your resume. No account, nothing
-              stored — just the keywords you match and the ones you&apos;re
+              stored, just the keywords you match and the ones you&apos;re
               missing.
             </p>
             <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
