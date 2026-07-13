@@ -28,11 +28,10 @@ export type ProPrice = {
 /** Pro monthly price per currency. */
 export const PRO_MONTHLY: Record<Currency, ProPrice> = {
   NGN: {
-    // TEST PRICING — revert to ₦25,000 (amountMinor 2_500_000, display "₦25,000")
-    // and the real plan code once the live checkout test passes. The charge
-    // itself comes from the Paystack plan, so `display` just needs to match it.
-    amountMinor: 100_000, // ₦1,000
-    display: "₦1,000",
+    // The charge itself comes from the Paystack plan (fetched at checkout),
+    // so `display` just needs to match the plan's real amount.
+    amountMinor: 2_500_000, // ₦25,000
+    display: "₦25,000",
     period: "/ month",
     planCode: env.PAYSTACK_PLAN_PRO_NGN,
   },

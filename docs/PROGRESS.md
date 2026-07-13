@@ -129,9 +129,18 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     card. Owner's design pack: `C:\Users\User1\Downloads\
     stitch_constellation_resume_system` (application detail, deep scan,
     insights, settings etc. still unbuilt — next phase).
-  - NOT STARTED: insights/analytics, application detail hub, Job Search Pass +
-    Lifetime purchases, final landing copy (messaging house), §7 privacy
-    corrections.
+  - DONE (2026-07-13): **application detail hub** (`/applications/[id]`, per
+    the Stitch design) — header w/ inline status select (reuses
+    `moveApplication`), deterministic keyword analysis of the attached version
+    vs the job (same `lib/ats` engine), expandable job description (+ original
+    posting link), assets panel (resume w/ score ring, cover letters for the
+    job), honest journey timeline (recorded moments only), and a notes
+    scratchpad (`applications.notes`, migration `0009` applied; saves on blur
+    via `updateApplicationNotes`). Kanban card titles now link to it; route
+    `loading.tsx` added.
+  - NOT STARTED: insights/analytics, Job Search Pass + Lifetime purchases,
+    final landing copy (messaging house), §7 privacy corrections, remaining
+    Stitch designs (ATS deep scan, settings profile, integrations, billing).
 
 ## 4. Architecture map
 
@@ -231,9 +240,8 @@ Once Pro is confirmed active, `isPro()` gates the AI quota
 
 ## 7. Known issues / TODO backlog
 
-- **[billing] Revert the ₦1,000 test price → ₦25,000** (`lib/billing/pricing.ts`)
-  and point `PAYSTACK_PLAN_PRO_NGN` at the real plan — payments are verified,
-  this is the last billing loose end.
+- ~~[billing] test price revert~~ DONE 2026-07-13: real ₦25,000 price + plan
+  live and owner-verified.
 - **AI paths never verified against the live API by the assistant** (no key in
   sandbox, can't drive a browser). `safeEmbed` logs failures (a NaN-token insert
   bug in `ai_generations` was fixed). Owner should do one real end-to-end run:
@@ -246,17 +254,15 @@ Once Pro is confirmed active, `isPro()` gates the AI quota
 - **Editor** can't edit education/projects/certifications yet (preserved on save).
 - **Stripe** webhook route is a stub; Stripe is named in legal docs but Paystack
   is the active processor. Contact email in docs/brand: `contact.cvbuilder@gmail.com`.
-- **PostHog needs its key**: code is wired (`lib/analytics.ts`), but
-  `NEXT_PUBLIC_POSTHOG_KEY` must be set in `.env.local` + Vercel or the funnel
-  still measures nothing.
+- ~~PostHog key~~ DONE 2026-07-13: key set in env + Vercel, events verified
+  arriving; owner built the funnel insight in PostHog.
 - ~~[pricing] unreal Pro bullets~~ RESOLVED 2026-07-13: "Priority processing"
   and "all templates" removed from /pricing at owner's direction; every
   remaining Pro bullet is enforced in code ("Cover letters & interview prep"
   built + Pro-gated same day).
-- **AI generation for cover letters / interview prep never exercised live**
-  by the assistant (no Gemini key in sandbox). Owner: as Pro, run finalize →
-  "Draft a cover letter" and a kanban card → prep → Generate; confirm
-  `ai_generations` rows with kinds `cover_letter` / `interview_prep`.
+- ~~cover letter / interview prep live test~~ DONE 2026-07-13: owner verified
+  both flows end-to-end against the live Gemini API, and the free-tier gates
+  (monthly tailor cap UpgradePrompt, locked DOCX button) behave as designed.
 - **[rebrand] Privacy corrections for counsel** (`docs/rebranding.md` §7 + new
   findings): categories table all "NO", blanket "no sensitive info", AI
   providers listed as Anthropic/Google/OpenAI (reality: Gemini only), Meta
