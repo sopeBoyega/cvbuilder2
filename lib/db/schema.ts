@@ -165,6 +165,8 @@ export const applications = pgTable("applications", {
   status: text("status").notNull().default("saved"),
   /** Free-text "what's my next move" reminder shown on the card. */
   nextAction: text("next_action"),
+  /** Longer scratchpad on the detail page: interview questions, contacts, research. */
+  notes: text("notes"),
   /** Manual ordering within a column, low-to-high. */
   position: integer("position").notNull().default(0),
   appliedAt: timestamp("applied_at", { withTimezone: true }),

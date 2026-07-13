@@ -121,7 +121,12 @@ function Card({
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold text-on-surface">
-            {card.jobTitle}
+            <Link
+              href={`/applications/${card.id}`}
+              className="transition-colors hover:text-primary"
+            >
+              {card.jobTitle}
+            </Link>
           </h3>
           {card.company ? (
             <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-on-surface-variant">

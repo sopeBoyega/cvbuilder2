@@ -64,6 +64,13 @@
       "when": 1783962430717,
       "tag": "0008_eager_human_torch",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783977287552,
+      "tag": "0009_clammy_black_knight",
+      "breakpoints": true
     }
   ]
 }
