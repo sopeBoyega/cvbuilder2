@@ -1,17 +1,48 @@
-import { UserRound } from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
+import { eq } from "drizzle-orm";
 
+import { ProfileForm } from "@/components/settings/profile-form";
 import { AppPageHeader } from "@/components/shell/app-page-header";
-import { EmptyState } from "@/components/ui/empty-state";
+import { db } from "@/lib/db";
+import { profiles } from "@/lib/db/schema";
+import { TagList } from "@/lib/validation/profile";
 
-export default function ProfileSettingsPage() {
+export default async function ProfileSettingsPage() {
+  const { userId } = await auth();
+
+  const [profile] = userId
+    ? await db
+        .select()
+        .from(profiles)
+        .where(eq(profiles.clerkUserId, userId))
+        .limit(1)
+    : [];
+
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-4 md:p-8">
-      <AppPageHeader title="Profile" description="Manage your profile." />
-      <EmptyState
-        icon={UserRound}
-        title="Profile settings are coming soon"
-        description="Your name, email, and sign-in are managed through your account menu for now. Target role and job-search preferences will live here."
+    <div className="mx-auto max-w-3xl space-y-6 p-4 md:p-8">
+      <AppPageHeader
+        title="Profile"
+        description="Your professional identity and what you're targeting."
       />
+      {profile ? (
+        <ProfileForm
+          name={profile.name}
+          email={profile.email}
+          initialHeadline={profile.headline ?? ""}
+          initialRoles={parseTags(profile.targetRoles)}
+          initialIndustries={parseTags(profile.targetIndustries)}
+        />
+      ) : (
+        <p className="text-sm text-on-surface-variant">
+          Your profile isn&apos;t ready yet. Refresh in a moment.
+        </p>
+      )}
     </div>
   );
+}
+
+/** Stored jsonb re-validated on read; bad payloads degrade to empty. */
+function parseTags(value: unknown): string[] {
+  const parsed = TagList.safeParse(value);
+  return parsed.success ? parsed.data : [];
 }
