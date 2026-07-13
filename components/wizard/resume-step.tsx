@@ -150,7 +150,7 @@ export function ResumeStep({
 
       {resumes.length === 0 ? (
         <p className="pt-4 text-center text-sm text-on-surface-variant">
-          You don&apos;t have any resumes yet — import one to get started.
+          You don&apos;t have any resumes yet. Import one to get started.
         </p>
       ) : null}
     </div>

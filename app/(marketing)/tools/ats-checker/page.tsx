@@ -7,7 +7,7 @@ import { BRAND } from "@/lib/brand";
 export const metadata: Metadata = {
   title: `Free ATS Resume Checker | ${BRAND.name}`,
   description:
-    "Paste a job description and your resume to see which keywords an ATS is scanning for — and which ones you're missing. Free, no account needed.",
+    "Paste a job description and your resume to see which keywords an ATS is scanning for, and which ones you're missing. Free, no account needed.",
 };
 
 export default function AtsCheckerPage() {
@@ -25,8 +25,8 @@ export default function AtsCheckerPage() {
           </h1>
           <p className="mt-4 text-base leading-6 text-on-surface-variant">
             Paste a job description and your resume. We&apos;ll show the
-            keywords an applicant tracking system scans for — and which ones
-            you&apos;re missing — using the same engine that powers {BRAND.name}.
+            keywords an applicant tracking system scans for, and which ones
+            you&apos;re missing, using the same engine that powers {BRAND.name}.
           </p>
         </div>
 

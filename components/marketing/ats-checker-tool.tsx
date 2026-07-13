@@ -129,7 +129,7 @@ export function AtsCheckerTool() {
               {fileName ?? "Choose a PDF or Word file"}
             </span>
             <span className="text-xs text-on-surface-variant">
-              We read the text only — nothing is stored.
+              We read the text only; nothing is stored.
             </span>
           </button>
           <input
@@ -279,8 +279,8 @@ function EmailCapture({ coverage }: { coverage: number }) {
   return (
     <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
       <p className="text-sm text-on-surface">
-        This checks keyword coverage. The full ATS score — structure,
-        formatting and semantic match — plus one-click tailoring and export
+        This checks keyword coverage. The full ATS score (structure,
+        formatting and semantic match) plus one-click tailoring and export
         come with a free account.
       </p>
       <form onSubmit={submit} className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -311,7 +311,7 @@ function EmailCapture({ coverage }: { coverage: number }) {
       </form>
       {error ? <p className="mt-2 text-xs text-destructive">{error}</p> : null}
       <p className="mt-2 text-xs text-on-surface-variant">
-        We save your email only — never your resume or the job text.{" "}
+        We save your email only, never your resume or the job text.{" "}
         <Link
           href="/sign-up"
           className="underline underline-offset-2 hover:text-on-surface"

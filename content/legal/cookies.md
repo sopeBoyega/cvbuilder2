@@ -20,7 +20,7 @@ We also use other tracking technologies with similar functions, such as web beac
 
 ## WHY DO WE USE COOKIES?
 
-We use first- and third-party cookies for several reasons. Some cookies are required for technical reasons in order for our Services to operate, and we refer to these as 'essential' or 'strictly necessary' cookies. Other cookies enable us to track and target the interests of our users to enhance the experience on our Services. Third parties serve cookies through our Services for analytics, authentication, payments, and — where enabled — advertising.
+We use first- and third-party cookies for several reasons. Some cookies are required for technical reasons in order for our Services to operate, and we refer to these as 'essential' or 'strictly necessary' cookies. Other cookies enable us to track and target the interests of our users to enhance the experience on our Services. Third parties serve cookies through our Services for analytics, authentication, payments, and, where enabled, advertising.
 
 The specific types of first- and third-party cookies served through our Services and the purposes they perform are described below.
 
@@ -44,7 +44,7 @@ These cookies collect information that is used either in aggregate form to help 
 
 | Provider | Purpose |
 |---|---|
-| PostHog | Product analytics — understanding how users move through the app, which features are used, and where we can improve |
+| PostHog | Product analytics: understanding how users move through the app, which features are used, and where we can improve |
 | Vercel Analytics | Web performance and traffic measurement (web vitals) |
 
 ### Functional cookies

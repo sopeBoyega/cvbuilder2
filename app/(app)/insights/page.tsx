@@ -11,7 +11,7 @@ export default function InsightsPage() {
       <EmptyState
         icon={ChartNoAxesColumn}
         title="Insights are coming soon"
-        description="Response rates, score trends, and what's working in your search will appear here — built from the applications you track. Nothing is measured yet."
+        description="Response rates, score trends, and what's working in your search will appear here, built from the applications you track. Nothing is measured yet."
       >
         <Link
           href="/applications"

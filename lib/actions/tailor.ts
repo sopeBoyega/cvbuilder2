@@ -10,6 +10,7 @@ import { safeEmbed } from "@/lib/ai/embeddings";
 import { generateGapQuestions } from "@/lib/ai/gap-questions";
 import { MODEL_IDS } from "@/lib/ai/models";
 import { assertWithinQuota, logGeneration } from "@/lib/ai/usage";
+import { assertCanTailor } from "@/lib/billing/entitlements";
 import {
   analyzeResume,
   extractJobKeywords,
@@ -547,6 +548,17 @@ export async function saveTailoredResume(
     .where(and(eq(resumes.id, resumeId), eq(resumes.profileId, profile.id)))
     .limit(1);
   if (!resume) return { ok: false, error: "That resume could not be found." };
+
+  // Free-tier monthly cap — checked before any AI spend.
+  try {
+    await assertCanTailor(profile.id);
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error ? error.message : "You've hit the free limit.",
+    };
+  }
 
   // This tailored draft is a brand-new version, so embed its content directly
   // rather than via `ensureVersionEmbedding` (there's no row yet), and store the

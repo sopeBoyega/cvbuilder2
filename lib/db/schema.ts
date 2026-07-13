@@ -214,6 +214,57 @@ export const subscriptions = pgTable("subscriptions", {
 });
 
 /**
+ * An AI-drafted cover letter for a (job, resume) pair. `content` is the full
+ * letter text — editable after generation, so it's the user's document, not a
+ * cached AI response. Tone/length are the generation knobs, stored so
+ * "Regenerate" can reuse them (validated by Zod enums in `lib/validation/ai.ts`).
+ */
+export const coverLetters = pgTable("cover_letters", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  profileId: uuid("profile_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  jobId: uuid("job_id")
+    .references(() => jobs.id, { onDelete: "cascade" })
+    .notNull(),
+  resumeId: uuid("resume_id")
+    .references(() => resumes.id, { onDelete: "cascade" })
+    .notNull(),
+  /** "professional" | "warm" | "direct". */
+  tone: text("tone").notNull().default("professional"),
+  /** "short" | "medium" | "detailed". */
+  length: text("length").notNull().default("medium"),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+/**
+ * The AI-generated interview question set for a tracked application. One row
+ * per application (unique) — regenerating replaces the set. `questions` is
+ * validated against `InterviewQuestions` in `lib/validation/ai.ts` on write
+ * and re-parsed on read (same jsonb pattern as `resume_versions.content`).
+ */
+export const interviewPreps = pgTable("interview_preps", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  applicationId: uuid("application_id")
+    .references(() => applications.id, { onDelete: "cascade" })
+    .notNull()
+    .unique(),
+  questions: jsonb("questions").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+/**
  * A marketing lead captured pre-signup (top of the funnel, e.g. on the free
  * ATS-checker results). Deliberately stores the email only — never the resume
  * or job text, which the checker page promises are not kept. Emails are

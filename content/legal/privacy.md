@@ -5,7 +5,7 @@
 This Privacy Notice for **CV Builder** ('we', 'us', or 'our') describes how and why we might access, collect, store, use, and/or share ('process') your personal information when you use our services ('Services'), including when you:
 
 - Visit our website at [https://cvbuilder2-one.vercel.app/](https://cvbuilder2-one.vercel.app/), or any website of ours that links to this Privacy Notice
-- Use CVBuilder. CVBuilder — an AI web + mobile app that tailors a job seeker's CV/resume to a specific job description, optimizes it to pass ATS (applicant tracking system) filters, and helps them land interviews. Audience: job seekers of all levels, many non-designers, time-poor and stressed
+- Use CVBuilder. CVBuilder is an AI web + mobile app that tailors a job seeker's CV/resume to a specific job description, optimizes it to pass ATS (applicant tracking system) filters, and helps them land interviews. Audience: job seekers of all levels, many non-designers, time-poor and stressed
 - Engage with us in other related ways, including any marketing or events
 
 **Questions or concerns?** Reading this Privacy Notice will help you understand your privacy rights and choices. We are responsible for making decisions about how your personal information is processed. If you do not agree with our policies and practices, please do not use our Services. If you still have any questions or concerns, please contact us at contact.cvbuilder@gmail.com.
@@ -239,7 +239,7 @@ If you are located in Switzerland, you may contact the [Federal Data Protection 
 
 However, please note that this will not affect the lawfulness of the processing before its withdrawal nor, when applicable law allows, will it affect the processing of your personal information conducted in reliance on lawful processing grounds other than consent.
 
-**Opting out of marketing and promotional communications:** You can unsubscribe from our marketing and promotional communications at any time by clicking on the unsubscribe link in the emails that we send, or by contacting us using the details provided in the section '[HOW CAN YOU CONTACT US ABOUT THIS NOTICE?](#15-how-can-you-contact-us-about-this-notice)' below. You will then be removed from the marketing lists. However, we may still communicate with you — for example, to send you service-related messages that are necessary for the administration and use of your account, to respond to service requests, or for other non-marketing purposes.
+**Opting out of marketing and promotional communications:** You can unsubscribe from our marketing and promotional communications at any time by clicking on the unsubscribe link in the emails that we send, or by contacting us using the details provided in the section '[HOW CAN YOU CONTACT US ABOUT THIS NOTICE?](#15-how-can-you-contact-us-about-this-notice)' below. You will then be removed from the marketing lists. However, we may still communicate with you, for example, to send you service-related messages that are necessary for the administration and use of your account, to respond to service requests, or for other non-marketing purposes.
 
 ### Account Information
 
@@ -285,7 +285,7 @@ The table below shows the categories of personal information we have collected i
 | H. Professional or employment-related information | Business contact details in order to provide you our Services at a business level or job title, work history, and professional qualifications if you apply for a job with us | NO |
 | I. Education Information | Student records and directory information | NO |
 | J. Inferences drawn from collected personal information | Inferences drawn from any of the collected personal information listed above to create a profile or summary about, for example, an individual's preferences and characteristics | NO |
-| K. Sensitive personal Information | — | NO |
+| K. Sensitive personal Information | None | NO |
 
 We may also collect other personal information outside of these categories through instances where you interact with us in person, online, or by phone or mail in the context of:
 
@@ -354,7 +354,7 @@ We may update this Privacy Notice from time to time. The updated version will be
 If you have questions or comments about this notice, you may email us at contact.cvbuilder@gmail.com or contact us by post at:
 
 CV Builder
-[Street address — fill in before publishing]
+[Street address: fill in before publishing]
 [City, State, Postal code]
 Nigeria
 

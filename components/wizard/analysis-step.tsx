@@ -188,7 +188,7 @@ export function AnalysisStep() {
         <Card icon={Brain} title="Skill gaps" accent="text-indigo-hi">
           {skillGaps.length === 0 ? (
             <p className="text-sm text-on-surface-variant">
-              No critical skill gaps — every curated skill in this job
+              No critical skill gaps. Every curated skill in this job
               description already appears in your resume.
             </p>
           ) : (

@@ -42,6 +42,6 @@ export async function captureLead(
     return { ok: true };
   } catch {
     // Never block the visitor's path forward over a lead write.
-    return { ok: false, error: "Something went wrong — try again." };
+    return { ok: false, error: "Something went wrong. Try again." };
   }
 }

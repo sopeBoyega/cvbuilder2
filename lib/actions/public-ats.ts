@@ -66,7 +66,7 @@ export async function checkAtsMatch(
   if (resumeText.length < MIN_RESUME_LENGTH) {
     return {
       ok: false,
-      error: "Add your resume — paste the text or upload a PDF/Word file.",
+      error: "Add your resume: paste the text or upload a PDF/Word file.",
     };
   }
 
