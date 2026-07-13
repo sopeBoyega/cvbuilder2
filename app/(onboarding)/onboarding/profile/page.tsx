@@ -1,10 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, MapPin, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowRight,
+  ChevronDown,
+  Loader2,
+  MapPin,
+  Search,
+} from "lucide-react";
 
 import { Logo } from "@/components/shell/logo";
+import { updateProfile } from "@/lib/actions/profile";
 import { BRAND } from "@/lib/brand";
 
 type ExperienceLevel = "student" | "mid" | "senior" | "exec";
@@ -16,12 +24,43 @@ const EXPERIENCE_LEVELS: { id: ExperienceLevel; label: string }[] = [
   { id: "exec", label: "Exec" },
 ];
 
+/** Select values → the label stored on the profile (editable later in settings). */
+const INDUSTRY_LABELS: Record<string, string> = {
+  tech: "Technology / Software",
+  finance: "Finance / Fintech",
+  health: "Healthcare",
+  design: "Design / Creative",
+};
+
 const GLASS_PANEL =
   "rounded-[12px] border border-border bg-[rgba(22,28,42,0.4)] p-3 backdrop-blur-[16px] transition-all";
 
 export default function OnboardingProfilePage() {
+  const router = useRouter();
+  const [role, setRole] = useState("");
   const [industry, setIndustry] = useState("");
   const [experience, setExperience] = useState<ExperienceLevel>("senior");
+  const [finishing, startFinishing] = useTransition();
+
+  /*
+   * Persist target role/industry to the profile (the same fields settings
+   * edits). Best-effort: onboarding never blocks on this save — the user can
+   * refine everything later in /settings/profile.
+   */
+  function finish() {
+    startFinishing(async () => {
+      const targetRoles = role.trim() ? [role.trim()] : [];
+      const industryLabel = INDUSTRY_LABELS[industry];
+      if (targetRoles.length > 0 || industryLabel) {
+        await updateProfile({
+          headline: "",
+          targetRoles,
+          targetIndustries: industryLabel ? [industryLabel] : [],
+        });
+      }
+      router.push("/dashboard");
+    });
+  }
 
   return (
     <main className="relative flex min-h-dvh flex-col bg-background font-sans text-on-surface selection:bg-primary selection:text-on-primary">
@@ -75,6 +114,8 @@ export default function OnboardingProfilePage() {
                   <Search className="mr-2 size-5 text-on-surface-variant" />
                   <input
                     type="text"
+                    value={role}
+                    onChange={(event) => setRole(event.target.value)}
                     placeholder="e.g. Senior Frontend Engineer"
                     className="w-full border-none bg-transparent p-0 text-sm text-on-surface outline-none placeholder:text-on-surface-variant/50 focus:ring-0"
                   />
@@ -176,13 +217,18 @@ export default function OnboardingProfilePage() {
               >
                 Skip for now
               </Link>
-              <Link
-                href="/dashboard"
-                className="flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-base font-semibold leading-6 text-on-primary shadow-[0_0_15px_rgba(119,220,132,0.3)] transition-all hover:scale-[1.02] hover:bg-primary-fixed sm:w-auto"
+              <button
+                type="button"
+                onClick={finish}
+                disabled={finishing}
+                className="flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-base font-semibold leading-6 text-on-primary shadow-[0_0_15px_rgba(119,220,132,0.3)] transition-all hover:scale-[1.02] hover:bg-primary-fixed disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
               >
+                {finishing ? (
+                  <Loader2 className="mr-2 size-5 animate-spin" />
+                ) : null}
                 Finish setup
-                <ArrowRight className="ml-2 size-5" />
-              </Link>
+                {finishing ? null : <ArrowRight className="ml-2 size-5" />}
+              </button>
             </div>
           </div>
         </div>

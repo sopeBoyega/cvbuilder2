@@ -23,6 +23,12 @@ export const profiles = pgTable("profiles", {
   clerkUserId: text("clerk_user_id").notNull().unique(),
   email: text("email").notNull(),
   name: text("name"),
+  /** One-line professional headline, e.g. "Frontend engineer · React/TS". */
+  headline: text("headline"),
+  /** Roles the user is targeting (string[] as jsonb; Zod-validated app-side). */
+  targetRoles: jsonb("target_roles").notNull().default([]),
+  /** Industries the user is targeting (string[] as jsonb). */
+  targetIndustries: jsonb("target_industries").notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

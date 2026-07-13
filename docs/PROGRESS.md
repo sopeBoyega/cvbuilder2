@@ -138,9 +138,29 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     scratchpad (`applications.notes`, migration `0009` applied; saves on blur
     via `updateApplicationNotes`). Kanban card titles now link to it; route
     `loading.tsx` added.
-  - NOT STARTED: insights/analytics, Job Search Pass + Lifetime purchases,
-    final landing copy (messaging house), §7 privacy corrections, remaining
-    Stitch designs (ATS deep scan, settings profile, integrations, billing).
+  - DONE (2026-07-13): **insights page** (`/insights`, per the Stitch design,
+    honest-data version) — server-computed aggregates only: stat tiles
+    (response rate, interview rate, avg ATS score across variants, apps sent
+    + this month), application funnel (saved → applied → interview → offer,
+    stage-to-stage %, counts derived from current board columns), latest
+    tailored scores as single-hue labeled bars. Skipped the mockup's "AI
+    Insight" correlation card and trend deltas — no history snapshots exist to
+    compute them, and we don't fabricate. Full EmptyState when the tracker is
+    empty; route `loading.tsx` added. (Stage-accent palette was run through
+    the dataviz validator; identity is carried by row labels, not color.)
+  - BUILT, **MIGRATION + VERIFY PENDING** (2026-07-13, shell classifier
+    outage): **settings profile page** (per the Stitch design) — new `profiles`
+    columns `headline` / `target_roles` / `target_industries` (jsonb string[],
+    `lib/validation/profile.ts::TagList`), `updateProfile` action
+    (`lib/actions/profile.ts`; name/email stay Clerk-owned and read-only),
+    chip-editor form (`components/settings/profile-form.tsx`), and the
+    onboarding step-2 form now actually saves target role/industry (was fully
+    decorative — closes that backlog item). **NEXT SESSION: run
+    `pnpm db:generate` + `pnpm db:migrate` (expect migration 0010), then
+    typecheck/lint/test/build — none of this is verified yet.**
+  - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
+    (messaging house), §7 privacy corrections, remaining Stitch designs
+    (ATS deep scan, integrations, billing restyle).
 
 ## 4. Architecture map
 
