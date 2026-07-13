@@ -11,8 +11,13 @@ export const BRAND = {
   legalName: "CVBuilder, Inc.",
   /** Sits under the name in the sidebar. Descriptive, not the brand. */
   tagline: "AI Resume Tailoring",
-  /** Positioning line from the go-to-market plan. */
-  promise: "Beat the bots. Land the interview.",
+  /**
+   * Positioning line — PROVISIONAL draft under the repositioning
+   * (docs/rebranding.md §4B; ICP = early-career tech). Owner to finalize.
+   * Replaced the retired "Beat the bots. Land the interview."
+   */
+  promise:
+    "A tailored, ATS-safe resume for every job — without gaming yourself into rejection.",
   description:
     "Tailor your resume to a job description, check your ATS score, and prepare stronger applications.",
   /** Contact inbox used across the site and legal docs. */

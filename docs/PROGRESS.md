@@ -4,10 +4,17 @@
 > single source of truth for where the project stands, how to work in this repo,
 > and what is currently in flight. Last updated: 2026-07-13.
 
-CVBuilder is an AI resume-tailoring + ATS app. Positioning: **"Beat the bots.
-Land the interview."** A user pastes a job description, picks a resume, sees an
-explainable ATS score, tailors it (AI-assisted), and exports an ATS-safe PDF/DOCX.
-There is a detailed build roadmap/PDF the owner shared; this doc is the running state.
+CVBuilder is an AI resume-tailoring + ATS app. A user pastes a job description,
+picks a resume, sees an explainable ATS score, tailors it (AI-assisted), and
+exports an ATS-safe PDF/DOCX. There is a detailed build roadmap/PDF the owner
+shared; this doc is the running state.
+
+**REPOSITIONING IN PROGRESS — read `docs/rebranding.md`.** The old wedge
+("Beat the bots. Land the interview.") is retired as commoditized. New stance:
+outcome + trust — a genuinely better, ATS-safe resume for a specific job,
+without keyword-stuffing — with transparent scoring. Owner locked (2026-07-13):
+**ICP = early-career / new-grad tech**; **name stays "CVBuilder"** (tagline
+evolves); final promise line still pending, so landing copy is provisional.
 
 ---
 
@@ -69,9 +76,39 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
   - DONE: application tracker (kanban, optimistic Zustand), marketing pages
     (working guest ATS checker, pricing, About), **real legal docs** (privacy/
     terms/cookies rendered from `content/legal/*.md` via react-markdown).
-  - **IN FLIGHT: Paystack Pro subscription — see §6. This is the active task.**
+  - DONE: **Paystack Pro subscription — owner verified the full payment loop
+    works (2026-07-13).** See §6 for the remaining pricing revert.
+  - DONE (2026-07-13): **empty states + loading states** — shared `EmptyState`/
+    `ErrorState` (`components/ui/`), `AiLoader` constellation loader (cycling
+    status lines; keyframes in `globals.css`), route `loading.tsx` skeletons
+    (dashboard, resumes, resume detail, applications, billing), `UpgradePrompt`
+    paywall card (`components/billing/upgrade-prompt.tsx`) shown on AI quota
+    errors (detected via `lib/ai/quota.ts::isQuotaError` — the message constant
+    shared with `QuotaExceededError`), and honest coming-soon states on all stub
+    pages (insights, settings/*, application detail, cover letter, interview
+    prep). `AppPageHeader` restyled from leftover light-theme zinc to tokens.
+  - DONE (2026-07-13): **rebrand engineering, phase 1** (per `docs/rebranding.md` §6):
+    - **Landing page rebuilt** — `components/marketing/landing-page.tsx` (client)
+      + thin server wrapper `app/(marketing)/page.tsx` (passes Pro price from
+      the server-only pricing module). Sections: hero (provisional early-career-
+      tech promise + score-ring preview + "Check your resume free" primary CTA)
+      → stance → pillars → how-it-works → proof **placeholder** (no fake
+      testimonials; mailto ask) → pricing strip → trust/data line (Gemini named,
+      links /privacy) → final CTA. Now tokens, not hardcoded hex. The old page's
+      over-claims (cover letters / interview prep / Chrome capture as "ready")
+      were removed. **All copy is provisional pending the owner's messaging house.**
+    - **ATS-checker email capture** — `leads` table (migration `0007`, applied),
+      `lib/actions/leads.ts::captureLead` (email-only, lowercased, silent on
+      duplicates), capture form on checker results → prefilled `/sign-up`.
+    - **PostHog wired** — `lib/analytics.ts` (typed events: `checker_used`,
+      `email_captured`, `cta_clicked`; no-ops without key) +
+      `AnalyticsProvider` in the root layout. **Owner: set
+      `NEXT_PUBLIC_POSTHOG_KEY` (+ optional `NEXT_PUBLIC_POSTHOG_HOST`) in
+      `.env.local` and Vercel** — until then events are dropped by design.
+    - `BRAND.promise` updated to the provisional §4B line (About page shows it).
   - NOT STARTED: cover letter generator, interview prep, insights/analytics,
-    Job Search Pass + Lifetime one-time purchases.
+    Job Search Pass + Lifetime one-time purchases, final landing copy
+    (messaging house), §7 privacy corrections.
 
 ## 4. Architecture map
 
@@ -107,7 +144,11 @@ embedding vector(768), tailored_for_job_id) · `jobs` (embedding vector(768)) ·
 `profiles` has **no `plan` column** — Pro is resolved from `subscriptions` via
 `lib/billing/entitlements.ts::getEntitlements()`/`isPro()`.
 
-## 6. ACTIVE TASK — Paystack Pro subscription (debugging)
+## 6. Paystack Pro subscription — DONE (owner verified payments work, 2026-07-13)
+
+> Kept for reference. **Still outstanding: revert the ₦1,000 test price**
+> (see the bullet in the flow notes below and §7). Do not commit/push/PR
+> without being asked — the owner handles version control.
 
 **Goal:** paid Pro tier via Paystack. Currency **NGN now**, code is
 **multi-currency-ready** (see `lib/billing/pricing.ts` — geo seam + per-currency
@@ -167,8 +208,9 @@ Once Pro is confirmed active, `isPro()` gates the AI quota
 
 ## 7. Known issues / TODO backlog
 
-- **[billing] Finish + verify the Paystack loop** (§6) — the immediate task.
-- **[billing] Revert the ₦1,000 test price → ₦25,000** after verification.
+- **[billing] Revert the ₦1,000 test price → ₦25,000** (`lib/billing/pricing.ts`)
+  and point `PAYSTACK_PLAN_PRO_NGN` at the real plan — payments are verified,
+  this is the last billing loose end.
 - **AI paths never verified against the live API by the assistant** (no key in
   sandbox, can't drive a browser). `safeEmbed` logs failures (a NaN-token insert
   bug in `ai_generations` was fixed). Owner should do one real end-to-end run:
@@ -181,7 +223,19 @@ Once Pro is confirmed active, `isPro()` gates the AI quota
 - **Editor** can't edit education/projects/certifications yet (preserved on save).
 - **Stripe** webhook route is a stub; Stripe is named in legal docs but Paystack
   is the active processor. Contact email in docs/brand: `contact.cvbuilder@gmail.com`.
-- **PostHog** installed, not instrumented (funnel measures nothing yet).
+- **PostHog needs its key**: code is wired (`lib/analytics.ts`), but
+  `NEXT_PUBLIC_POSTHOG_KEY` must be set in `.env.local` + Vercel or the funnel
+  still measures nothing.
+- **[rebrand] Pricing page over-claims Pro**: the Pro tier lists "Cover letters
+  & interview prep" (`app/(marketing)/pricing/page.tsx`) but neither is built.
+  Owner decision: pull the bullets or mark "coming soon" — a paid tier's
+  promises shouldn't be edited silently by the assistant.
+- **[rebrand] Privacy corrections for counsel** (`docs/rebranding.md` §7 + new
+  findings): categories table all "NO", blanket "no sensitive info", AI
+  providers listed as Anthropic/Google/OpenAI (reality: Gemini only), Meta
+  pixel row in cookies.md, "abandoned shopping cart" boilerplate.
+- **[rebrand] Final landing copy** waits on the messaging house; current hero/
+  section copy is a provisional draft for the early-career-tech ICP.
 - Insights/analytics, cover letters, interview prep = later Phase 3/4.
 
 ## 8. Owner working style

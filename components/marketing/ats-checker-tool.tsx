@@ -2,11 +2,13 @@
 
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   ArrowRight,
   Check,
   Loader2,
+  Mail,
   Radar,
   Upload,
   X,
@@ -14,6 +16,8 @@ import {
 
 import { ScoreRing } from "@/components/score-ring";
 import { checkAtsMatch, type AtsCheckResult } from "@/lib/actions/public-ats";
+import { captureLead } from "@/lib/actions/leads";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 type ResumeMode = "paste" | "upload";
@@ -32,7 +36,15 @@ export function AtsCheckerTool() {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     startTransition(async () => {
-      setResult(await checkAtsMatch(data));
+      const checked = await checkAtsMatch(data);
+      setResult(checked);
+      if (checked.ok) {
+        track("checker_used", {
+          coverage: checked.coverage,
+          matched: checked.matched.length,
+          missing: checked.missing.length,
+        });
+      }
     });
   }
 
@@ -229,20 +241,88 @@ function Result({
         </div>
       ) : null}
 
-      <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-        <p className="text-sm text-on-surface">
-          This checks keyword coverage. The full ATS score — structure,
-          formatting and semantic match — plus one-click tailoring and export
-          come with a free account.
-        </p>
+      <EmailCapture coverage={result.coverage} />
+    </div>
+  );
+}
+
+/**
+ * The funnel step on results: capture the email, then continue into sign-up
+ * with it prefilled. The lead write is best-effort — a failure never blocks
+ * the visitor from continuing.
+ */
+function EmailCapture({ coverage }: { coverage: number }) {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    startTransition(async () => {
+      const saved = await captureLead({
+        email,
+        source: "ats_checker",
+        checkerScore: coverage,
+      });
+      if (!saved.ok) {
+        setError(saved.error);
+        return;
+      }
+      track("email_captured", { source: "ats_checker", coverage });
+      track("cta_clicked", { cta: "checker_continue_free", location: "ats_checker_results" });
+      router.push(`/sign-up?email=${encodeURIComponent(email.trim())}`);
+    });
+  }
+
+  return (
+    <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+      <p className="text-sm text-on-surface">
+        This checks keyword coverage. The full ATS score — structure,
+        formatting and semantic match — plus one-click tailoring and export
+        come with a free account.
+      </p>
+      <form onSubmit={submit} className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <div className="relative flex-1">
+          <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-variant" />
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="you@email.com"
+            aria-label="Email address"
+            className="w-full rounded-lg border border-border bg-surface-container-lowest py-2 pl-9 pr-3 text-sm text-on-surface outline-none transition-all placeholder:text-on-surface-variant/40 focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={pending}
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {pending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <ArrowRight className="size-4" />
+          )}
+          Continue free
+        </button>
+      </form>
+      {error ? <p className="mt-2 text-xs text-destructive">{error}</p> : null}
+      <p className="mt-2 text-xs text-on-surface-variant">
+        We save your email only — never your resume or the job text.{" "}
         <Link
           href="/sign-up"
-          className="mt-3 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition-all hover:brightness-110"
+          className="underline underline-offset-2 hover:text-on-surface"
+          onClick={() =>
+            track("cta_clicked", { cta: "checker_skip_email", location: "ats_checker_results" })
+          }
         >
-          Tailor this resume free
-          <ArrowRight className="size-4" />
+          Skip and sign up directly
         </Link>
-      </div>
+        .
+      </p>
     </div>
   );
 }

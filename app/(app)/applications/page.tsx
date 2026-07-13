@@ -4,6 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { Briefcase, Sparkles } from "lucide-react";
 
 import { KanbanBoard } from "@/components/kanban/board";
+import { EmptyState } from "@/components/ui/empty-state";
 import { db } from "@/lib/db";
 import {
   applications,
@@ -38,7 +39,20 @@ export default async function ApplicationsPage() {
       </header>
 
       {cards.length === 0 ? (
-        <EmptyState />
+        <EmptyState
+          icon={Briefcase}
+          title="No applications yet"
+          description="Tailor a resume to a job, then add it to the tracker from the final step. Cards you add show up here, ready to move as you progress."
+          className="p-10 md:p-16"
+        >
+          <Link
+            href="/tailor"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-semibold text-on-primary transition-all hover:brightness-110"
+          >
+            <Sparkles className="size-4" />
+            Start tailoring
+          </Link>
+        </EmptyState>
       ) : (
         <KanbanBoard initial={cards} />
       )}
@@ -88,26 +102,3 @@ async function loadCards(): Promise<KanbanCard[]> {
   }));
 }
 
-function EmptyState() {
-  return (
-    <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center md:p-16">
-      <div className="mx-auto mb-6 flex size-14 items-center justify-center rounded-2xl border border-border bg-surface-raised text-primary">
-        <Briefcase className="size-7" />
-      </div>
-      <h2 className="font-heading text-2xl font-semibold text-on-background">
-        No applications yet
-      </h2>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-on-surface-variant">
-        Tailor a resume to a job, then add it to the tracker from the final
-        step. Cards you add show up here, ready to move as you progress.
-      </p>
-      <Link
-        href="/tailor"
-        className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-semibold text-on-primary transition-all hover:brightness-110"
-      >
-        <Sparkles className="size-4" />
-        Start tailoring
-      </Link>
-    </div>
-  );
-}

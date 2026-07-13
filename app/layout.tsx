@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
+import { AnalyticsProvider } from "@/components/analytics/analytics-provider";
 import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +53,10 @@ export default function RootLayout({
           jetBrainsMono.variable,
         )}
       >
-        <body className="min-h-full flex flex-col">{children}</body>
+        <body className="min-h-full flex flex-col">
+          <AnalyticsProvider />
+          {children}
+        </body>
       </html>
     </ClerkProvider>
   );

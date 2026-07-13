@@ -15,6 +15,12 @@ const EnvSchema = z.object({
   PAYSTACK_PLAN_PRO_NGN: z.string().min(1).optional(),
   /** Absolute site origin, used to build Paystack callback URLs. */
   NEXT_PUBLIC_APP_URL: z.url().optional(),
+  // Analytics (PostHog). Optional — lib/analytics.ts no-ops without the key.
+  // Note: client code reads these via literal process.env.NEXT_PUBLIC_* refs
+  // (this module is server-only); they're listed here for documentation and
+  // server-side validation.
+  NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
+  NEXT_PUBLIC_POSTHOG_HOST: z.url().optional(),
 });
 
 export const env = EnvSchema.parse({
@@ -26,4 +32,6 @@ export const env = EnvSchema.parse({
   PAYSTACK_SECRET_KEY: process.env.PAYSTACK_SECRET_KEY,
   PAYSTACK_PLAN_PRO_NGN: process.env.PAYSTACK_PLAN_PRO_NGN,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+  NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
 });

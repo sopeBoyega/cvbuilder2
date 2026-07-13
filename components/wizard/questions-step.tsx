@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  AlertCircle,
   ArrowRight,
   Loader2,
   Sparkles,
@@ -11,7 +10,11 @@ import {
   Wand2,
 } from "lucide-react";
 
+import { UpgradePrompt } from "@/components/billing/upgrade-prompt";
+import { AiLoader } from "@/components/ui/ai-loader";
+import { ErrorState } from "@/components/ui/error-state";
 import { draftGapAnswer, requestGapQuestions } from "@/lib/actions/tailor";
+import { isQuotaError } from "@/lib/ai/quota";
 import { useWizard, useWizardHydrated } from "@/lib/stores/wizard";
 import type { GapAnswer, GapQuestion } from "@/lib/validation/ai";
 
@@ -64,36 +67,54 @@ export function QuestionsStep() {
     router.push("/tailor/edit");
   }
 
+  function continueToEditor() {
+    setWizard({ step: "edit" });
+    router.push("/tailor/edit");
+  }
+
   if (error) {
+    // Out of free AI runs: pitch Pro, with the manual editor as the way out.
+    if (isQuotaError(error)) {
+      return (
+        <UpgradePrompt
+          title="You've used today's free AI runs"
+          description="Upgrade to keep generating gap questions and drafts, or continue in the editor — your analysis and score are untouched."
+          dismissLabel="Continue to editor"
+          onDismiss={continueToEditor}
+          className="my-16"
+        />
+      );
+    }
+
     return (
-      <div className="space-y-6">
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6">
-          <p className="flex items-start gap-2 text-sm text-destructive">
-            <AlertCircle className="mt-0.5 size-4 shrink-0" />
-            {error}
-          </p>
-        </div>
+      <ErrorState
+        title="Couldn't generate questions"
+        description={error}
+        className="my-16"
+      >
         <button
           type="button"
-          onClick={() => {
-            setWizard({ step: "edit" });
-            router.push("/tailor/edit");
-          }}
-          className="flex items-center gap-2 rounded-lg border border-border bg-surface px-6 py-3 font-semibold text-on-surface transition-all hover:border-primary hover:text-primary"
+          onClick={continueToEditor}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-surface-container px-4 py-3 text-sm font-semibold text-on-surface transition-all hover:border-primary hover:text-primary"
         >
           Continue to editor
           <ArrowRight className="size-4" />
         </button>
-      </div>
+      </ErrorState>
     );
   }
 
   if (!questions) {
     return (
-      <div className="flex flex-col items-center gap-4 py-24 text-on-surface-variant">
-        <Loader2 className="size-8 animate-spin text-indigo-hi" />
-        <p className="text-sm">Finding the gaps worth asking about…</p>
-      </div>
+      <AiLoader
+        title="Reading between the lines"
+        messages={[
+          "Re-reading the job description…",
+          "Comparing it with your resume…",
+          "Finding gaps worth asking about…",
+          "Writing questions only you can answer…",
+        ]}
+      />
     );
   }
 
