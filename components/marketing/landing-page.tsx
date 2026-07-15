@@ -123,7 +123,7 @@ function AtsMatchRing({ compact = false }: { compact?: boolean }) {
           ? "h-[230px] w-[230px]"
           : "h-[280px] w-[280px] sm:h-[340px] sm:w-[340px]"
       } rounded-full border border-[#242C3D] bg-[#10131A]/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5),0_0_42px_rgba(91,192,107,0.12)]`}
-      aria-label="Product preview: an example ATS match score of 89"
+      aria-label="Product preview: an example match score of 89"
     >
       <div className="absolute inset-4 rounded-full bg-[conic-gradient(#5BC06B_0_320deg,#242C3D_320deg_360deg)] p-[2px]">
         <div className="relative h-full w-full rounded-full border border-[#242C3D] bg-[#0D1017]">
@@ -131,7 +131,7 @@ function AtsMatchRing({ compact = false }: { compact?: boolean }) {
           <div className="absolute inset-14 rounded-full border border-[#242C3D]" />
           <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center">
             <span className="font-mono text-[12px] uppercase tracking-[0.18em] text-[#9BA1A6]">
-              ATS Match
+              Match score
             </span>
             <span className="font-mono text-[56px] font-bold leading-none text-white sm:text-[68px]">
               89
@@ -411,7 +411,7 @@ function ScoreStepPreview() {
           </div>
         </div>
       </WindowShell>
-      <MobileFrame active={3} title="ATS Score" subtitle="Matched and missing terms." />
+      <MobileFrame active={3} title="Match Score" subtitle="Matched and missing terms." />
       <div className="pointer-events-none absolute -right-20 top-1/2 h-64 w-64 rounded-full bg-[#7C82F0]/20 blur-[100px]" />
     </div>
   );
@@ -692,10 +692,11 @@ export function LandingPage({
               </h1>
               <p className="mb-10 max-w-2xl text-lg leading-relaxed text-[#9BA1A6] md:text-xl">
                 Early-career tech is a numbers game: dozens of applications,
-                each screened by software before a human reads it. {BRAND.name}{" "}
-                tailors your resume to each job description with a score you
-                can see the reasoning behind. ATS-safe, in minutes, without
-                keyword-stuffing yourself into rejection.
+                each competing for a recruiter&apos;s twenty-second first
+                read. {BRAND.name} tailors your resume to each job description
+                with a score you can see the reasoning behind. ATS-safe, in
+                minutes, without keyword-stuffing your way into the reject
+                pile.
               </p>
               <div className="flex max-w-2xl flex-col gap-4 sm:flex-row">
                 <div className="relative flex-1">
@@ -745,8 +746,9 @@ export function LandingPage({
                   <div className="h-2 w-[89%] rounded-full bg-[#5BC06B]" />
                 </div>
                 <p className="mt-3 text-sm text-[#E6E8EB]">
-                  Every score shows its breakdown: matched terms, real gaps,
-                  and what each check weighs. No black box.
+                  Our diagnostic, not a robot&apos;s verdict: how relevant and
+                  how parseable your resume is for this job, with matched
+                  terms, real gaps, and every check&apos;s weight shown.
                 </p>
               </div>
             </div>
@@ -871,7 +873,7 @@ export function LandingPage({
                   price: "Free",
                   cadence: "forever",
                   features: [
-                    "Full ATS score & explanation",
+                    "Full match score & explanation",
                     "Resume import and editor",
                     "PDF export",
                     "Application tracker",

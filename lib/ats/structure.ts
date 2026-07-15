@@ -46,7 +46,7 @@ export function lintStructure(content: ResumeContent): LintResult {
       code: "missing_email",
       weight: 3,
       passed: Boolean(basics.email),
-      message: "No email address. Most ATS reject resumes they can't contact.",
+      message: "No email address. A recruiter who can't contact you moves on.",
       severity: "error",
       section: "basics",
     },

@@ -7,7 +7,7 @@ import { BRAND } from "@/lib/brand";
 export const metadata: Metadata = {
   title: `Free ATS Resume Checker | ${BRAND.name}`,
   description:
-    "Paste a job description and your resume to see which keywords an ATS is scanning for, and which ones you're missing. Free, no account needed.",
+    "Paste a job description and your resume to see which of the role's keywords a recruiter would find in your resume, and which are missing. Free, no account needed.",
 };
 
 export default function AtsCheckerPage() {
@@ -21,12 +21,13 @@ export default function AtsCheckerPage() {
             Free tool · no account
           </span>
           <h1 className="mt-3 font-heading text-[32px] font-bold leading-[1.15] tracking-tight text-on-surface md:text-[44px]">
-            Check your resume before the ATS does
+            See your resume the way a recruiter searches it
           </h1>
           <p className="mt-4 text-base leading-6 text-on-surface-variant">
-            Paste a job description and your resume. We&apos;ll show the
-            keywords an applicant tracking system scans for, and which ones
-            you&apos;re missing, using the same engine that powers {BRAND.name}.
+            Paste a job description and your resume. We&apos;ll show which of
+            the role&apos;s keywords show up in your resume and which are
+            missing, using the same engine that powers {BRAND.name}. Not a
+            robot verdict: a relevance check you can act on.
           </p>
         </div>
 

@@ -279,7 +279,7 @@ function EmailCapture({ coverage }: { coverage: number }) {
   return (
     <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
       <p className="text-sm text-on-surface">
-        This checks keyword coverage. The full ATS score (structure,
+        This checks keyword coverage. The full match score (structure,
         formatting and semantic match) plus one-click tailoring and export
         come with a free account.
       </p>

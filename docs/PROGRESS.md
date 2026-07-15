@@ -210,6 +210,21 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     (unset = DB-only; owner must add the key + eventually a verified sender
     domain), works signed-out, prefills the profile email, plus six honest
     FAQs. Verified: typecheck, lint, 70/70 tests.
+  - DONE (2026-07-14): **claims audit** (owner adopted The Tech Resume's
+    "ATS Myths Busted" stance; hard copy rules now in `docs/rebranding.md`
+    §5) — removed every unsubstantiated auto-rejection/screening claim:
+    structure flag ("Most ATS reject…" → recruiter framing), landing hero
+    ("screened by software" → recruiter's 20-second read), checker headline
+    + metadata (recruiter-search framing, "not a robot verdict"), about page
+    ("quietly filters out the rest" → search/skim/parse reality), and the
+    retired "Beat the bots" slogan that was STILL LIVE on the sign-up page
+    (now `BRAND.promise`). Hero ring relabeled "Match score"; landing +
+    support FAQ now define the score as our relevance/parseability
+    diagnostic, not an ATS's number nor an interview prediction. Parsing
+    claims (ATS-safe exports) deliberately retained — they're the defensible
+    ones. Owner's split (2026-07-14): ALL marketing/conversion surfaces say
+    "match score" (landing, pricing, checker, about); in-app labels keep
+    "ATS Score" as shorthand next to the visible breakdown.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections, ATS deep scan design.
 

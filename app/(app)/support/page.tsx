@@ -11,9 +11,9 @@ import { profiles } from "@/lib/db/schema";
 /* Every answer states only what the product actually does today. */
 const FAQS: { question: string; answer: string }[] = [
   {
-    question: "How is my ATS score calculated?",
+    question: "How is my match score calculated?",
     answer:
-      "It combines four signals: keyword coverage against the job description, semantic similarity (AI), resume structure, and formatting checks. Every score shows its full breakdown with weights. The same inputs always produce the same deterministic parts of the score.",
+      "It combines four signals: keyword coverage against the job description, semantic similarity (AI), resume structure, and formatting checks. Every score shows its full breakdown with weights, and the same inputs always produce the same deterministic parts. To be clear about what it is: this is our relevance-and-parseability diagnostic, not a number any ATS assigns and not a prediction that you'll get an interview.",
   },
   {
     question: "What does the free plan include?",
