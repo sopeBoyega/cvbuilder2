@@ -148,19 +148,40 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     compute them, and we don't fabricate. Full EmptyState when the tracker is
     empty; route `loading.tsx` added. (Stage-accent palette was run through
     the dataviz validator; identity is carried by row labels, not color.)
-  - BUILT, **MIGRATION + VERIFY PENDING** (2026-07-13, shell classifier
-    outage): **settings profile page** (per the Stitch design) — new `profiles`
-    columns `headline` / `target_roles` / `target_industries` (jsonb string[],
-    `lib/validation/profile.ts::TagList`), `updateProfile` action
-    (`lib/actions/profile.ts`; name/email stay Clerk-owned and read-only),
-    chip-editor form (`components/settings/profile-form.tsx`), and the
-    onboarding step-2 form now actually saves target role/industry (was fully
-    decorative — closes that backlog item). **NEXT SESSION: run
-    `pnpm db:generate` + `pnpm db:migrate` (expect migration 0010), then
-    typecheck/lint/test/build — none of this is verified yet.**
+  - DONE (2026-07-14): **settings profile page** (per the Stitch design) —
+    `profiles` columns `headline` / `target_roles` / `target_industries`
+    (migration `0010`, applied), `updateProfile` action (name/email stay
+    Clerk-owned and read-only), chip-editor form, and the onboarding step-2
+    form now actually saves target role/industry (was fully decorative).
+    Typecheck + lint verified.
+  - DONE (2026-07-14): **landing page re-skinned onto the owner's
+    "Professional Identity Hub" design concept** — resurrected the original
+    window/mobile-frame preview components + constellation thread/nodes from
+    git history (`5c0589e`) and poured the repositioned copy into them: same
+    hero wording + checker-first CTAs, stance section, three FeatureSections
+    retitled to the trust pillars (job-specific / ATS-safe / transparent) with
+    wizard-step previews (job → upload → score ring), proof placeholder,
+    pricing strip, trust line, final CTA. The concept's fabricated stats
+    (50% faster / 92% success / 85%) were replaced with real product facts
+    ("3 steps", "2 formats", "4 signals"). Footer newsletter is a real
+    capture: `leads` source enum extended with "newsletter", wired to
+    `captureLead` + PostHog `email_captured`. All CTA tracking retained.
+  - DONE (2026-07-14): **settings reworked into one screen with sub-tabs**
+    (per the Stitch settings designs) — shared `app/(app)/settings/layout.tsx`
+    (header + `SettingsNav` tab rail: Profile / Billing / Integrations /
+    Notifications; vertical on desktop, scrollable pills on mobile), each
+    sub-page now content-only, `/settings` redirects to `/settings/profile`,
+    loading skeletons updated to content-only. The design's "Account" tab was
+    skipped (Clerk owns it) and "Targeting" lives inside Profile. Integrations
+    stays an honest EmptyState naming the planned connections (LinkedIn sync,
+    Drive export, Chrome capture) — the design's "Connected" states are not
+    faked. Verified: typecheck, lint, 70/70 tests. `pnpm build` currently
+    fails ONLY on next/font Google-font downloads over the owner's flaky
+    connection (bounced 16→3 errors across retries; same build passed earlier
+    today; Vercel unaffected). If it keeps biting locally, self-hosting the
+    three fonts as local .woff2 would remove the build-time network dependency.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
-    (messaging house), §7 privacy corrections, remaining Stitch designs
-    (ATS deep scan, integrations, billing restyle).
+    (messaging house), §7 privacy corrections, ATS deep scan design.
 
 ## 4. Architecture map
 

@@ -14,8 +14,8 @@ import { leads } from "@/lib/db/schema";
 
 const LeadInput = z.object({
   email: z.email("Enter a valid email address."),
-  source: z.enum(["ats_checker"]),
-  /** Keyword coverage shown at capture; null if somehow absent. */
+  source: z.enum(["ats_checker", "newsletter"]),
+  /** Keyword coverage shown at capture; null outside the checker. */
   checkerScore: z.number().int().min(0).max(100).nullable(),
 });
 
