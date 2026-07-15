@@ -180,8 +180,8 @@ export default function AppLayout({
         </div>
 
         <div className="space-y-1 border-t border-border px-3 pt-6">
-          <a
-            href={`mailto:${BRAND.contactEmail}`}
+          <Link
+            href="/support"
             title={collapsed ? "Support" : undefined}
             className={cn(
               "flex w-full items-center gap-4 rounded-lg px-4 py-3 text-sm text-on-surface-variant transition-all hover:bg-surface-container-high",
@@ -190,7 +190,7 @@ export default function AppLayout({
           >
             <HelpCircle className="size-5 shrink-0" />
             {!collapsed && "Support"}
-          </a>
+          </Link>
           <Link
             href="/settings/profile"
             title={collapsed ? "Settings" : undefined}

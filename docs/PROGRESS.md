@@ -197,6 +197,19 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     NOTE: that error revealed the GEMINI FREE TIER's 20-req/day cap on
     2.5-flash is a real production ceiling — paid Gemini tier (or a smaller
     default model) is now a launch consideration.
+  - DONE (2026-07-14): **resume card actions + support page** —
+    (1) the library card's dead three-dot menu now works: Rename (dialog,
+    `renameResume`) and Delete (confirm dialog spelling out the cascade,
+    `deleteResume`; DB cascades cover versions/analyses/letters, application
+    cards survive with a nulled resume ref); (2) the hardcoded "Main master
+    template" subtitle now shows the resume's actual export template name and
+    follows the user's template pick; (3) `/support` page (sidebar Support
+    links there): form → `support_requests` table (migration `0011`, applied;
+    DB row is source of truth) + best-effort email relay to
+    `BRAND.contactEmail` via Resend's REST API **gated on `RESEND_API_KEY`**
+    (unset = DB-only; owner must add the key + eventually a verified sender
+    domain), works signed-out, prefills the profile email, plus six honest
+    FAQs. Verified: typecheck, lint, 70/70 tests.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections, ATS deep scan design.
 
