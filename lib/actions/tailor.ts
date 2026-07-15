@@ -6,6 +6,7 @@ import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { draftAnswer } from "@/lib/ai/draft-answer";
+import { friendlyAiError } from "@/lib/ai/error-message";
 import { safeEmbed } from "@/lib/ai/embeddings";
 import { generateGapQuestions } from "@/lib/ai/gap-questions";
 import { MODEL_IDS } from "@/lib/ai/models";
@@ -359,10 +360,10 @@ export async function requestGapQuestions(
   } catch (error) {
     return {
       ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "We couldn't generate questions. Continue to the editor instead.",
+      error: friendlyAiError(
+        error,
+        "We couldn't generate questions. Continue to the editor instead.",
+      ),
     };
   }
 }
@@ -440,10 +441,10 @@ export async function draftGapAnswer(
   } catch (error) {
     return {
       ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "We couldn't draft an answer. Write one yourself instead.",
+      error: friendlyAiError(
+        error,
+        "We couldn't draft an answer. Write one yourself instead.",
+      ),
     };
   }
 }

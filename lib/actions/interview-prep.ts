@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
+import { friendlyAiError } from "@/lib/ai/error-message";
 import { generateInterviewQuestions } from "@/lib/ai/interview-prep";
 import { MODEL_IDS } from "@/lib/ai/models";
 import { assertWithinQuota, logGeneration } from "@/lib/ai/usage";
@@ -116,10 +117,10 @@ export async function generateInterviewPrep(
   } catch (error) {
     return {
       ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "We couldn't generate questions. Try again.",
+      error: friendlyAiError(
+        error,
+        "We couldn't generate questions. Try again.",
+      ),
     };
   }
 }

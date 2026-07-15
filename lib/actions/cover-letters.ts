@@ -6,6 +6,7 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 
 import { generateCoverLetterText } from "@/lib/ai/cover-letter";
+import { friendlyAiError } from "@/lib/ai/error-message";
 import { MODEL_IDS } from "@/lib/ai/models";
 import { assertWithinQuota, logGeneration } from "@/lib/ai/usage";
 import { isPro } from "@/lib/billing/entitlements";
@@ -142,10 +143,7 @@ export async function generateCoverLetter(
   } catch (error) {
     return {
       ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "We couldn't draft the letter. Try again.",
+      error: friendlyAiError(error, "We couldn't draft the letter. Try again."),
     };
   }
 }
@@ -221,10 +219,10 @@ export async function regenerateCoverLetter(
   } catch (error) {
     return {
       ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "We couldn't redraft the letter. Try again.",
+      error: friendlyAiError(
+        error,
+        "We couldn't redraft the letter. Try again.",
+      ),
     };
   }
 }

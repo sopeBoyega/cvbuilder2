@@ -214,7 +214,7 @@ function Result({
             {result.missing.map((term) => (
               <span
                 key={term}
-                className="rounded border border-coral-hi/20 bg-coral-hi/10 px-2 py-0.5 font-mono text-xs text-coral-hi"
+                className="max-w-full wrap-anywhere rounded border border-coral-hi/20 bg-coral-hi/10 px-2 py-0.5 font-mono text-xs text-coral-hi"
               >
                 {term}
               </span>
@@ -232,7 +232,7 @@ function Result({
             {result.matched.map((term) => (
               <span
                 key={term}
-                className="rounded border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary"
+                className="max-w-full wrap-anywhere rounded border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary"
               >
                 {term}
               </span>

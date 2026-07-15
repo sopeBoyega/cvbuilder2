@@ -59,7 +59,8 @@ export default async function ResumeEditorPage({
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-4 md:p-8">
-      <div className="flex items-center justify-between gap-4">
+      {/* Toolbar wraps into rows on narrow screens instead of crushing the badge. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <Link
           href="/resumes"
           className="inline-flex items-center gap-2 text-sm text-on-surface-variant transition-colors hover:text-primary"
@@ -67,9 +68,9 @@ export default async function ResumeEditorPage({
           <ArrowLeft className="size-4" />
           Resumes
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
           {version ? (
-            <span className="rounded-full border border-border bg-surface px-3 py-1 text-xs uppercase tracking-wider text-on-surface-variant">
+            <span className="whitespace-nowrap rounded-full border border-border bg-surface px-3 py-1 text-xs uppercase tracking-wider text-on-surface-variant">
               {version.source === "edit" ? "Edited" : `Parsed from ${version.source}`}
               {version.atsScore !== null ? ` · ATS ${version.atsScore}` : ""}
             </span>

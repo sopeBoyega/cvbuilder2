@@ -211,7 +211,7 @@ export function QuestionsStep() {
               </p>
               <p className="mt-2 text-sm text-on-surface-variant">
                 Your resume is missing{" "}
-                <span className="rounded border border-coral-hi/30 bg-coral-hi/10 px-1.5 py-0.5 font-mono text-coral-hi">
+                <span className="wrap-anywhere rounded border border-coral-hi/30 bg-coral-hi/10 px-1.5 py-0.5 font-mono text-coral-hi">
                   {current.targetKeyword}
                 </span>
                 .
