@@ -1,13 +1,10 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** Mirrors the billing layout: header, then the plan panel card. */
+/** Content-only: the settings layout (header + tab rail) persists around it. */
 export default function BillingLoading() {
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-4 md:p-8">
-      <header className="space-y-3">
-        <Skeleton className="h-9 w-32 bg-surface-container-high" />
-        <Skeleton className="h-4 w-full max-w-md bg-surface-container-high" />
-      </header>
+    <div className="max-w-2xl space-y-6">
+      <Skeleton className="h-4 w-full max-w-md bg-surface-container-high" />
 
       <div className="space-y-6 rounded-xl border border-border bg-surface p-6">
         <div className="flex items-center gap-3">

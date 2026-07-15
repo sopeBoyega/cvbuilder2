@@ -2,7 +2,6 @@ import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 
 import { ProfileForm } from "@/components/settings/profile-form";
-import { AppPageHeader } from "@/components/shell/app-page-header";
 import { db } from "@/lib/db";
 import { profiles } from "@/lib/db/schema";
 import { TagList } from "@/lib/validation/profile";
@@ -18,26 +17,22 @@ export default async function ProfileSettingsPage() {
         .limit(1)
     : [];
 
+  if (!profile) {
+    return (
+      <p className="text-sm text-on-surface-variant">
+        Your profile isn&apos;t ready yet. Refresh in a moment.
+      </p>
+    );
+  }
+
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-4 md:p-8">
-      <AppPageHeader
-        title="Profile"
-        description="Your professional identity and what you're targeting."
-      />
-      {profile ? (
-        <ProfileForm
-          name={profile.name}
-          email={profile.email}
-          initialHeadline={profile.headline ?? ""}
-          initialRoles={parseTags(profile.targetRoles)}
-          initialIndustries={parseTags(profile.targetIndustries)}
-        />
-      ) : (
-        <p className="text-sm text-on-surface-variant">
-          Your profile isn&apos;t ready yet. Refresh in a moment.
-        </p>
-      )}
-    </div>
+    <ProfileForm
+      name={profile.name}
+      email={profile.email}
+      initialHeadline={profile.headline ?? ""}
+      initialRoles={parseTags(profile.targetRoles)}
+      initialIndustries={parseTags(profile.targetIndustries)}
+    />
   );
 }
 
