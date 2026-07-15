@@ -134,7 +134,7 @@ export function ApplicationDetail({
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="font-heading text-[30px] font-semibold leading-[1.2] text-on-surface">
+              <h1 className="wrap-anywhere font-heading text-[30px] font-semibold leading-[1.2] text-on-surface">
                 {jobTitle}
               </h1>
               <StatusSelect
@@ -401,14 +401,14 @@ function KeywordGroup({
           <span
             key={term}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-xs",
+              "inline-flex max-w-full items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-xs",
               tone === "matched"
                 ? "border-primary/20 bg-primary/10 text-primary"
                 : "border-coral-hi/20 bg-coral-hi/10 text-coral-hi",
             )}
           >
-            <Icon className="size-3" />
-            {term}
+            <Icon className="size-3 shrink-0" />
+            <span className="min-w-0 wrap-anywhere">{term}</span>
           </span>
         ))}
         {terms.length > KEYWORD_PREVIEW_COUNT ? (
@@ -447,7 +447,7 @@ function JobDescriptionCard({
         </span>
         Job description
       </h2>
-      <p className="mt-4 whitespace-pre-line text-sm leading-6 text-on-surface-variant">
+      <p className="wrap-anywhere mt-4 whitespace-pre-line text-sm leading-6 text-on-surface-variant">
         {shown}
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-4">

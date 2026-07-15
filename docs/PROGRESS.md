@@ -180,6 +180,23 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     connection (bounced 16→3 errors across retries; same build passed earlier
     today; Vercel unaffected). If it keeps biting locally, self-hosting the
     three fonts as local .woff2 would remove the build-time network dependency.
+  - DONE (2026-07-14): **shell + mobile polish from owner's device testing** —
+    (1) desktop sidebar collapses to logo-only (localStorage-persisted via
+    `useSyncExternalStore`, same hydration pattern as the wizard store);
+    (2) mobile bottom tabs now render from the SAME `APP_NAV` list as the
+    sidebar (they had drifted: Home/Tailor/Vault/Profile vs the sidebar's
+    Home/Resumes/Templates/Jobs/Analytics); (3) long unbroken strings no
+    longer overflow: keyword chips (application detail, editor, checker,
+    questions step), job-description body, and job title all use Tailwind v4
+    `wrap-anywhere`; ExportControl and the resume-detail toolbar wrap on
+    narrow screens; (4) raw Gemini errors ("Failed after 3 attempts.
+    AI_APICallError... gemini-2.5-flash") no longer reach the UI —
+    `lib/ai/error-message.ts::friendlyAiError` maps provider quota/rate-limit
+    noise to one honest sentence and is applied in all AI-backed action
+    catches (cover letters, interview prep, gap questions, draft answers).
+    NOTE: that error revealed the GEMINI FREE TIER's 20-req/day cap on
+    2.5-flash is a real production ceiling — paid Gemini tier (or a smaller
+    default model) is now a launch consideration.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections, ATS deep scan design.
 

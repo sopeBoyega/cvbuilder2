@@ -50,7 +50,7 @@ export function ExportControl({
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center justify-center gap-3">
       <div className="relative">
         <select
           aria-label="PDF template"

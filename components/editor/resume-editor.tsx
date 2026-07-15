@@ -223,10 +223,10 @@ export function ResumeEditor({
                     type="button"
                     onClick={() => addSkill(term)}
                     title={`Add "${term}" to skills`}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded border border-coral-hi/20 bg-coral-hi/10 px-2 py-0.5 font-mono text-xs text-coral-hi transition-colors hover:border-coral-hi hover:bg-coral-hi/20"
+                    className="inline-flex max-w-full cursor-pointer items-center gap-1.5 rounded border border-coral-hi/20 bg-coral-hi/10 px-2 py-0.5 font-mono text-xs text-coral-hi transition-colors hover:border-coral-hi hover:bg-coral-hi/20"
                   >
-                    <Plus className="size-3" />
-                    {term}
+                    <Plus className="size-3 shrink-0" />
+                    <span className="min-w-0 wrap-anywhere text-left">{term}</span>
                   </button>
                 ))}
               </div>
@@ -238,10 +238,10 @@ export function ResumeEditor({
               {analysis.matched.map((term) => (
                 <span
                   key={term}
-                  className="inline-flex items-center gap-1.5 rounded border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary"
+                  className="inline-flex max-w-full items-center gap-1.5 rounded border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary"
                 >
-                  <Check className="size-3" />
-                  {term}
+                  <Check className="size-3 shrink-0" />
+                  <span className="min-w-0 wrap-anywhere">{term}</span>
                 </span>
               ))}
             </div>
