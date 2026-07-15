@@ -273,6 +273,26 @@ export const interviewPreps = pgTable("interview_preps", {
 });
 
 /**
+ * A support message from the in-app form. The DB row is the source of truth
+ * (never lose a message); a copy is emailed to the contact inbox when
+ * RESEND_API_KEY is configured (see `lib/actions/support.ts`).
+ */
+export const supportRequests = pgTable("support_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  /** Null if the profile is later deleted; the message keeps its email copy. */
+  profileId: uuid("profile_id").references(() => profiles.id, {
+    onDelete: "set null",
+  }),
+  email: text("email").notNull(),
+  /** "bug" | "billing" | "feature" | "other" (Zod-validated app-side). */
+  topic: text("topic").notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+/**
  * A marketing lead captured pre-signup (top of the funnel, e.g. on the free
  * ATS-checker results). Deliberately stores the email only — never the resume
  * or job text, which the checker page promises are not kept. Emails are

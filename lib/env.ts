@@ -15,6 +15,11 @@ const EnvSchema = z.object({
   PAYSTACK_PLAN_PRO_NGN: z.string().min(1).optional(),
   /** Absolute site origin, used to build Paystack callback URLs. */
   NEXT_PUBLIC_APP_URL: z.url().optional(),
+  /**
+   * Resend API key. Optional: without it, support-form messages are stored in
+   * the DB only; with it, a copy is emailed to BRAND.contactEmail.
+   */
+  RESEND_API_KEY: z.string().min(1).optional(),
   // Analytics (PostHog). Optional — lib/analytics.ts no-ops without the key.
   // Note: client code reads these via literal process.env.NEXT_PUBLIC_* refs
   // (this module is server-only); they're listed here for documentation and
@@ -32,6 +37,7 @@ export const env = EnvSchema.parse({
   PAYSTACK_SECRET_KEY: process.env.PAYSTACK_SECRET_KEY,
   PAYSTACK_PLAN_PRO_NGN: process.env.PAYSTACK_PLAN_PRO_NGN,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
   NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
   NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
 });

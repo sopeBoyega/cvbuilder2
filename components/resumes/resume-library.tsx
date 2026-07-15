@@ -1,18 +1,37 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ChevronRight,
   FileText,
+  Loader2,
   MoreVertical,
+  Pencil,
   Plus,
   Search,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 
 import { ScoreRing } from "@/components/score-ring";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { EmptyState } from "@/components/ui/empty-state";
+import { deleteResume, renameResume } from "@/lib/actions/resume";
 import { cn } from "@/lib/utils";
 
 export type VariantView = {
@@ -26,6 +45,8 @@ export type ResumeGroup = {
   id: string;
   title: string;
   isBase: boolean;
+  /** Display name of the export template this resume uses. */
+  templateName: string;
   updatedAtIso: string;
   updatedLabel: string;
   atsScore: number | null;
@@ -177,6 +198,168 @@ export function ResumeLibrary({ groups }: { groups: ResumeGroup[] }) {
   );
 }
 
+/** The card's three-dot menu: rename (dialog) and delete (confirm dialog). */
+function ResumeCardMenu({ group }: { group: ResumeGroup }) {
+  const router = useRouter();
+  const [dialog, setDialog] = useState<"rename" | "delete" | null>(null);
+  const [title, setTitle] = useState(group.title);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startPending] = useTransition();
+
+  function close() {
+    setDialog(null);
+    setError(null);
+  }
+
+  function submitRename(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    startPending(async () => {
+      const result = await renameResume({ resumeId: group.id, title });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      close();
+      router.refresh();
+    });
+  }
+
+  function confirmDelete() {
+    setError(null);
+    startPending(async () => {
+      const result = await deleteResume({ resumeId: group.id });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      close();
+      router.refresh();
+    });
+  }
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          aria-label={`Options for ${group.title}`}
+          className="cursor-pointer rounded p-1 text-on-surface-variant transition-colors hover:bg-surface-container-highest"
+        >
+          <MoreVertical className="size-5" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            onClick={() => {
+              setTitle(group.title);
+              setDialog("rename");
+            }}
+          >
+            <Pencil className="size-4" />
+            Rename
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => setDialog("delete")}
+          >
+            <Trash2 className="size-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Rename */}
+      <Dialog open={dialog === "rename"} onOpenChange={(open) => !open && close()}>
+        <DialogContent>
+          <form onSubmit={submitRename}>
+            <DialogHeader>
+              <DialogTitle>Rename resume</DialogTitle>
+              <DialogDescription>
+                This is the name shown across your library, exports keep their
+                own filenames.
+              </DialogDescription>
+            </DialogHeader>
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              maxLength={120}
+              autoFocus
+              aria-label="Resume name"
+              className="my-4 w-full rounded-lg border border-border bg-surface-container-lowest px-3 py-2 text-sm text-on-surface outline-none transition-all focus:border-primary/40 focus:ring-1 focus:ring-primary/40"
+            />
+            {error ? (
+              <p role="alert" className="mb-3 text-xs text-destructive">
+                {error}
+              </p>
+            ) : null}
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={close}
+                className="rounded-lg px-4 py-2 text-sm text-on-surface-variant transition-colors hover:text-on-surface"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={pending || !title.trim()}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+                Save name
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirm */}
+      <Dialog open={dialog === "delete"} onOpenChange={(open) => !open && close()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete “{group.title}”?</DialogTitle>
+            <DialogDescription>
+              This permanently removes the resume, its{" "}
+              {group.variants.length > 0
+                ? `${group.variants.length} tailored ${group.variants.length === 1 ? "variant" : "variants"}, `
+                : ""}
+              version history, and any cover letters drafted from it. Tracked
+              applications stay on the board without the resume attached. This
+              cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {error ? (
+            <p role="alert" className="mt-2 text-xs text-destructive">
+              {error}
+            </p>
+          ) : null}
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={close}
+              className="rounded-lg px-4 py-2 text-sm text-on-surface-variant transition-colors hover:text-on-surface"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={confirmDelete}
+              disabled={pending}
+              className="inline-flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {pending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Trash2 className="size-4" />
+              )}
+              Delete resume
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 function ResumeGroupCard({ group }: { group: ResumeGroup }) {
   return (
     <div className="flex flex-col gap-1">
@@ -208,18 +391,12 @@ function ResumeGroupCard({ group }: { group: ResumeGroup }) {
                   {group.title}
                 </Link>
                 <p className="text-xs uppercase tracking-wider text-on-surface-variant">
-                  {group.isBase ? "Main master template" : "Variant"}
+                  {group.isBase ? group.templateName : "Variant"}
                 </p>
               </div>
               <div className="flex items-center gap-4">
                 <ScoreRing score={group.atsScore} size={48} />
-                <button
-                  type="button"
-                  aria-label="More options"
-                  className="cursor-pointer rounded p-1 text-on-surface-variant transition-colors hover:bg-surface-container-highest"
-                >
-                  <MoreVertical className="size-5" />
-                </button>
+                <ResumeCardMenu group={group} />
               </div>
             </div>
 

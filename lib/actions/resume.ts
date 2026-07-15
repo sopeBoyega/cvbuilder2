@@ -215,3 +215,93 @@ export async function saveResumeContent(
 
   return { ok: true };
 }
+
+const RenameResumeInput = z.object({
+  resumeId: z.uuid(),
+  title: z.string().trim().min(1, "Give it a name.").max(120),
+});
+
+export type ResumeMutationState = { ok: true } | { ok: false; error: string };
+
+/** Renames a resume (imports default to the uploaded file's name). */
+export async function renameResume(
+  input: unknown,
+): Promise<ResumeMutationState> {
+  const { userId } = await auth();
+  if (!userId) return { ok: false, error: "You need to be signed in." };
+
+  const parsed = RenameResumeInput.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "That name isn't valid.",
+    };
+  }
+
+  const [profile] = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.clerkUserId, userId))
+    .limit(1);
+  if (!profile) return { ok: false, error: "Your profile isn't ready yet." };
+
+  const updated = await db
+    .update(resumes)
+    .set({ title: parsed.data.title, updatedAt: sql`now()` })
+    .where(
+      and(
+        eq(resumes.id, parsed.data.resumeId),
+        eq(resumes.profileId, profile.id),
+      ),
+    )
+    .returning({ id: resumes.id });
+  if (updated.length === 0) {
+    return { ok: false, error: "That resume could not be found." };
+  }
+
+  revalidatePath("/resumes");
+  revalidatePath(`/resumes/${parsed.data.resumeId}`);
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+const DeleteResumeInput = z.object({ resumeId: z.uuid() });
+
+/**
+ * Deletes a resume and, via DB cascades, all its versions, analyses, and
+ * cover letters. Tracked applications survive with their resume reference
+ * nulled (`applications.resume_version_id` is ON DELETE SET NULL).
+ */
+export async function deleteResume(
+  input: unknown,
+): Promise<ResumeMutationState> {
+  const { userId } = await auth();
+  if (!userId) return { ok: false, error: "You need to be signed in." };
+
+  const parsed = DeleteResumeInput.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid request." };
+
+  const [profile] = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.clerkUserId, userId))
+    .limit(1);
+  if (!profile) return { ok: false, error: "Your profile isn't ready yet." };
+
+  const deleted = await db
+    .delete(resumes)
+    .where(
+      and(
+        eq(resumes.id, parsed.data.resumeId),
+        eq(resumes.profileId, profile.id),
+      ),
+    )
+    .returning({ id: resumes.id });
+  if (deleted.length === 0) {
+    return { ok: false, error: "That resume could not be found." };
+  }
+
+  revalidatePath("/resumes");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
