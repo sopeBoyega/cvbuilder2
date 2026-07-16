@@ -5,6 +5,7 @@ import { AlertCircle, ArrowRight, Loader2, UploadCloud } from "lucide-react";
 
 import { AiLoader } from "@/components/ui/ai-loader";
 import { importResume, type ImportResumeState } from "@/lib/actions/resume";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 type ImportSource = "upload" | "linkedin";
@@ -72,9 +73,17 @@ export function ResumeImport({ source }: { source: ImportSource }) {
           name="file"
           accept={copy.accept}
           className="hidden"
-          onChange={(event) =>
-            setFileName(event.target.files?.[0]?.name ?? null)
-          }
+          onChange={(event) => {
+            const file = event.target.files?.[0] ?? null;
+            setFileName(file?.name ?? null);
+            if (file) {
+              track("resume_uploaded", {
+                location: "onboarding",
+                file_type: file.name.split(".").pop()?.toLowerCase() ?? "unknown",
+                size_kb: Math.round(file.size / 1024),
+              });
+            }
+          }}
         />
 
         {state.error ? (

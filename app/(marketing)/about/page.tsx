@@ -14,15 +14,16 @@ export default function AboutPage() {
       <p className="text-base text-on-surface">{BRAND.promise}</p>
 
       <p>
-        Most résumés are read by software before a person ever sees them. An
-        applicant tracking system scans for the right keywords, a parseable
-        structure, and a clean format, and quietly filters out the rest.{" "}
-        {BRAND.name} exists to help you get past that first reader.
+        Most résumés live inside recruiting software before a person reads
+        them. Recruiters search and filter by keywords inside that software,
+        skim what surfaces in seconds, and can only judge what the software
+        parsed correctly. {BRAND.name} exists to make sure what they find is
+        your strongest, most relevant case.
       </p>
 
       <h2>What we do</h2>
       <p>
-        You paste a job description and pick a résumé. We show your ATS score
+        You paste a job description and pick a résumé. We show your match score
         before you apply, spell out exactly which keywords matched and which are
         missing, and help you tailor the résumé. Then you export a clean,
         selectable-text file an ATS can actually read.

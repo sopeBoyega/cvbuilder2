@@ -210,6 +210,47 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     (unset = DB-only; owner must add the key + eventually a verified sender
     domain), works signed-out, prefills the profile email, plus six honest
     FAQs. Verified: typecheck, lint, 70/70 tests.
+  - DONE (2026-07-14): **claims audit** (owner adopted The Tech Resume's
+    "ATS Myths Busted" stance; hard copy rules now in `docs/rebranding.md`
+    §5) — removed every unsubstantiated auto-rejection/screening claim:
+    structure flag ("Most ATS reject…" → recruiter framing), landing hero
+    ("screened by software" → recruiter's 20-second read), checker headline
+    + metadata (recruiter-search framing, "not a robot verdict"), about page
+    ("quietly filters out the rest" → search/skim/parse reality), and the
+    retired "Beat the bots" slogan that was STILL LIVE on the sign-up page
+    (now `BRAND.promise`). Hero ring relabeled "Match score"; landing +
+    support FAQ now define the score as our relevance/parseability
+    diagnostic, not an ATS's number nor an interview prediction. Parsing
+    claims (ATS-safe exports) deliberately retained — they're the defensible
+    ones. Owner's split (2026-07-14): ALL marketing/conversion surfaces say
+    "match score" (landing, pricing, checker, about); in-app labels keep
+    "ATS Score" as shorthand next to the visible breakdown.
+  - DONE (2026-07-14): **funnel events expanded + proof section fixed** —
+    new PostHog events `checker_page_viewed` (referrer + UTM props, fired via
+    `TrackPageEvent` on the checker page) and `resume_uploaded`
+    (file_type/size_kb/location; checker + onboarding); `checker_used` now
+    carries `duration_ms`. Owner's event plan mapped onto existing names
+    where funnels already use them (`checker_used` ≈ score_generated,
+    `email_captured` ≈ waitlist_email_submitted); parse_preview /
+    email_confirmed / share_card events skipped — those surfaces don't exist.
+    The proof section's "tell us your jump" was a mailto: link (silently dead
+    without a mail client — the "testimonials not working" bug); now an
+    inline form (`TestimonialCta`) writing to `support_requests` with topic
+    "testimonial" (accepted by the Zod enum, not shown in the support
+    dropdown) + Resend relay when configured.
+  - DONE (2026-07-14): **share card (viral loop on the guest checker)** —
+    results panel gets "Share my score": native share sheet on mobile,
+    clipboard fallback on desktop, `share_card_clicked` event
+    ({coverage, method}). The shared URL carries ONLY the three numbers
+    (`/tools/ats-checker?s=72&m=9&x=4`, never resume/job text) and unfurls as
+    a generated score-card PNG via `/api/og/checker` (ImageResponse; params
+    clamped; graceful "?" with no params — rendered + eyeballed, on-brand).
+    Checker page: `generateMetadata` sets the OG image + share title for
+    shared links, and arrivals see a "someone shared a X/100" banner above
+    the tool. `metadataBase` added to root layout (uses NEXT_PUBLIC_APP_URL).
+    GOTCHA for future OG work: Satori requires explicit `display: flex` on
+    EVERY div with >1 child; missing it surfaces only as a generic "failed to
+    pipe response" — the real cause is in the [cause] of the server log.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections, ATS deep scan design.
 

@@ -153,6 +153,15 @@ Fill the brackets once §4 is locked; structure holds regardless.
   2. *Actually ATS-safe* — real selectable-text PDF/DOCX that parsers can read (the thing screenshot-to-PDF and ChatGPT can't reliably do).
   3. *Transparent & honest* — you see the score breakdown; we optimize for a better resume, not a gamed one.
 - **Tone:** confident, calm, anti-hype. The category shouts fear ("88% rejected!"). You win by being the trustworthy adult in the room.
+- **HARD COPY RULES (claims audit, 2026-07-14, prompted by The Tech Resume's
+  "ATS Myths Busted"):** (1) never claim ATSes auto-reject resumes; the
+  defensible framing is that recruiters search/filter/skim *inside* the ATS
+  and can only judge what parsed correctly; (2) never claim the score
+  predicts interviews; it is our relevance + parseability diagnostic, not a
+  number an ATS assigns; (3) parsing/formatting claims (selectable text,
+  single column, knockout questions exist) are the defensible ATS claims;
+  stay inside them. The ICP reads Gergely Orosz; the copy must survive a
+  reader who has.
 - **Visual identity:** unchanged — constellation thread, star-map score ring, green/coral/indigo accents, Space Grotesk / Inter / JetBrains Mono. The score-ring animation is your single most demo-able asset; make it the hero visual.
 
 ---

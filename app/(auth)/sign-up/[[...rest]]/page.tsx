@@ -143,8 +143,7 @@ export default function SignUpPage() {
               Tailor your resume to any job.
             </h2>
             <p className="max-w-md text-[22px] font-semibold leading-[1.3] text-on-surface-variant">
-              Beat the bots. Land the interview. Precision tools for your
-              career trajectory.
+              {BRAND.promise}
             </p>
           </div>
         </section>

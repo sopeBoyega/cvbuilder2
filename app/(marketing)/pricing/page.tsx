@@ -35,7 +35,7 @@ const TIERS: Tier[] = [
     tagline: "Everything you need to land your next application.",
     features: [
       "3 tailored resumes per month",
-      "Deterministic ATS score with keyword, structure & formatting checks",
+      "Deterministic match score with keyword, structure & formatting checks",
       "Resume import (PDF / Word) and editor",
       "PDF export",
       "Application tracker",
