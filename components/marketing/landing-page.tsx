@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowRight,
   Bot,
   Check,
   ChevronRight,
@@ -17,6 +16,7 @@ import {
   Upload,
 } from "lucide-react";
 
+import { TestimonialCta } from "@/components/marketing/testimonial-cta";
 import { Logo } from "@/components/shell/logo";
 import { captureLead } from "@/lib/actions/leads";
 import { track } from "@/lib/analytics";
@@ -843,13 +843,7 @@ export function LandingPage({
                 before and after scores and interview results, they&apos;ll
                 appear in this space, with permission, unedited.
               </p>
-              <a
-                href={`mailto:${BRAND.contactEmail}?subject=My%20${BRAND.name}%20score%20jump`}
-                className="mt-6 inline-flex items-center gap-2 rounded-lg border border-[#242C3D] bg-[#161C2A] px-5 py-2.5 text-sm font-semibold text-[#E6E8EB] transition-all hover:border-[#5BC06B] hover:text-[#5BC06B]"
-              >
-                Used {BRAND.name}? Tell us your jump
-                <ArrowRight className="size-4" />
-              </a>
+              <TestimonialCta />
             </div>
           </div>
         </section>

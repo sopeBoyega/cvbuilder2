@@ -10,7 +10,9 @@ export const SUPPORT_TOPICS = [
 
 export const SupportInput = z.object({
   email: z.email("Enter a valid email so we can reply."),
-  topic: z.enum(["bug", "billing", "feature", "other"]),
+  // "testimonial" is accepted but not offered in the support form's dropdown;
+  // it comes from the landing page's score-jump form.
+  topic: z.enum(["bug", "billing", "feature", "other", "testimonial"]),
   message: z
     .string()
     .trim()

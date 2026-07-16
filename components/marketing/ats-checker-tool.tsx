@@ -10,6 +10,7 @@ import {
   Loader2,
   Mail,
   Radar,
+  Share2,
   Upload,
   X,
 } from "lucide-react";
@@ -35,6 +36,7 @@ export function AtsCheckerTool() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    const startedAt = performance.now();
     startTransition(async () => {
       const checked = await checkAtsMatch(data);
       setResult(checked);
@@ -43,6 +45,7 @@ export function AtsCheckerTool() {
           coverage: checked.coverage,
           matched: checked.matched.length,
           missing: checked.missing.length,
+          duration_ms: Math.round(performance.now() - startedAt),
         });
       }
     });
@@ -138,9 +141,17 @@ export function AtsCheckerTool() {
             name="file"
             accept=".pdf,.docx"
             className="hidden"
-            onChange={(event) =>
-              setFileName(event.target.files?.[0]?.name ?? null)
-            }
+            onChange={(event) => {
+              const file = event.target.files?.[0] ?? null;
+              setFileName(file?.name ?? null);
+              if (file) {
+                track("resume_uploaded", {
+                  location: "ats_checker",
+                  file_type: file.name.split(".").pop()?.toLowerCase() ?? "unknown",
+                  size_kb: Math.round(file.size / 1024),
+                });
+              }
+            }}
           />
         </div>
 
@@ -242,6 +253,79 @@ function Result({
       ) : null}
 
       <EmailCapture coverage={result.coverage} />
+
+      <ShareScore
+        coverage={result.coverage}
+        matched={result.matched.length}
+        missing={result.missing.length}
+      />
+    </div>
+  );
+}
+
+/**
+ * The share card: a link back to the checker carrying only the three numbers
+ * (?s=&m=&x=); the page's OG image renders them as a score card when the
+ * link unfurls. Native share where available, clipboard everywhere else.
+ */
+function ShareScore({
+  coverage,
+  matched,
+  missing,
+}: {
+  coverage: number;
+  matched: number;
+  missing: number;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function share() {
+    const url = `${window.location.origin}/tools/ats-checker?s=${coverage}&m=${matched}&x=${missing}`;
+    const payload = {
+      title: "My keyword match score",
+      text: `I scored ${coverage}/100 matching my resume to a job. Check yours free:`,
+      url,
+    };
+
+    let method = "clipboard";
+    if (navigator.share) {
+      try {
+        await navigator.share(payload);
+        method = "native";
+      } catch {
+        // User dismissed the sheet: not a share, not an error.
+        return;
+      }
+    } else {
+      await navigator.clipboard.writeText(`${payload.text} ${url}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+    track("share_card_clicked", { coverage, method });
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-container-low p-3">
+      <p className="text-xs leading-5 text-on-surface-variant">
+        Share your score. The link shows only the numbers, never your resume.
+      </p>
+      <button
+        type="button"
+        onClick={share}
+        className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-on-surface transition-all hover:border-primary hover:text-primary"
+      >
+        {copied ? (
+          <>
+            <Check className="size-3.5" />
+            Link copied
+          </>
+        ) : (
+          <>
+            <Share2 className="size-3.5" />
+            Share my score
+          </>
+        )}
+      </button>
     </div>
   );
 }
