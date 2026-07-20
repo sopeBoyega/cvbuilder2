@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Pager } from "@/components/ui/pager";
 import { deleteResume, renameResume } from "@/lib/actions/resume";
 import { cn } from "@/lib/utils";
 
@@ -71,6 +72,9 @@ const VARIANT_ACCENTS = [
 
 const GLASS = "border border-border bg-[rgba(22,28,42,0.8)] backdrop-blur-[8px]";
 
+/** 2 columns × 3 rows per page at the grid's default width. */
+const PAGE_SIZE = 6;
+
 /** Deterministic cover gradient derived from the resume id (no stock photos). */
 function coverGradient(id: string): string {
   let hash = 0;
@@ -82,6 +86,7 @@ function coverGradient(id: string): string {
 export function ResumeLibrary({ groups }: { groups: ResumeGroup[] }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("recent");
+  const [page, setPage] = useState(1);
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -102,6 +107,15 @@ export function ResumeLibrary({ groups }: { groups: ResumeGroup[] }) {
       return b.updatedAtIso.localeCompare(a.updatedAtIso);
     });
   }, [groups, query, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  // Clamp rather than reset via effect: a delete or a shrinking filter can
+  // leave `page` past the new last page without either changing on its own.
+  const safePage = Math.min(page, totalPages);
+  const pageItems = visible.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
 
   // First visit: no filter bar over an empty grid — one clear starting point.
   if (groups.length === 0) {
@@ -135,7 +149,10 @@ export function ResumeLibrary({ groups }: { groups: ResumeGroup[] }) {
           <input
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setPage(1);
+            }}
             placeholder="Search resumes…"
             aria-label="Search resumes"
             className="w-full rounded-lg border border-border bg-surface-container-low py-1.5 pl-9 pr-3 text-sm text-on-surface outline-none transition-all placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/40"
@@ -150,7 +167,10 @@ export function ResumeLibrary({ groups }: { groups: ResumeGroup[] }) {
             <button
               key={option.key}
               type="button"
-              onClick={() => setSort(option.key)}
+              onClick={() => {
+                setSort(option.key);
+                setPage(1);
+              }}
               aria-pressed={sort === option.key}
               className={cn(
                 "cursor-pointer rounded-lg border px-3 py-1.5 text-sm transition-all",
@@ -165,9 +185,9 @@ export function ResumeLibrary({ groups }: { groups: ResumeGroup[] }) {
         </div>
       </div>
 
-      {/* Grid */}
+      {/* Grid — paginated; the "create new" tile stays available on every page. */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {visible.map((group) => (
+        {pageItems.map((group) => (
           <ResumeGroupCard key={group.id} group={group} />
         ))}
 
@@ -188,6 +208,8 @@ export function ResumeLibrary({ groups }: { groups: ResumeGroup[] }) {
           </div>
         </Link>
       </div>
+
+      <Pager page={safePage} totalPages={totalPages} onChange={setPage} />
 
       {groups.length > 0 && visible.length === 0 ? (
         <p className="py-8 text-center text-sm text-on-surface-variant">

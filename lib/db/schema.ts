@@ -293,6 +293,48 @@ export const supportRequests = pgTable("support_requests", {
 });
 
 /**
+ * A cached external job listing (Discover feed). Unlike `jobs` (private,
+ * one row per user per pasted description), this is a shared catalog:
+ * fetched periodically from JSearch (`lib/jobs/ingest.ts`), embedded once,
+ * and ranked per-user at read time against their base resume — so ranking
+ * is a cheap in-memory cosine comparison, not a re-fetch or re-embed.
+ */
+export const jobListings = pgTable(
+  "job_listings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    /** Provider name, e.g. "jsearch" — future-proofs a second source. */
+    source: text("source").notNull(),
+    /** The provider's own job id, for dedup across ingestion runs. */
+    externalId: text("external_id").notNull(),
+    title: text("title").notNull(),
+    company: text("company"),
+    location: text("location"),
+    remote: boolean("remote").default(false).notNull(),
+    description: text("description").notNull(),
+    url: text("url").notNull(),
+    /** Free-text as the provider reports it, e.g. "$90K - $120K". */
+    salary: text("salary"),
+    postedAt: timestamp("posted_at", { withTimezone: true }),
+    /** Null until the ingestion embedding step succeeds. */
+    embedding: vector("embedding", { dimensions: EMBEDDING_DIMENSIONS }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    /** Bumped on every ingestion sweep that still finds this listing live. */
+    fetchedAt: timestamp("fetched_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("job_listings_source_external_id_idx").on(
+      table.source,
+      table.externalId,
+    ),
+  ],
+);
+
+/**
  * A marketing lead captured pre-signup (top of the funnel, e.g. on the free
  * ATS-checker results). Deliberately stores the email only — never the resume
  * or job text, which the checker page promises are not kept. Emails are

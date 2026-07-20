@@ -40,7 +40,8 @@ import { ResumeContent } from "@/lib/validation/resume";
  * Tailoring always starts here, never from a variant produced for another job,
  * otherwise each pass would compound the last job's keyword stuffing.
  */
-async function baseVersionOf(resumeId: string) {
+/** Also used by Discover feed ranking (lib/actions/discover.ts). */
+export async function baseVersionOf(resumeId: string) {
   const [version] = await db
     .select()
     .from(resumeVersions)
@@ -85,8 +86,11 @@ async function ensureJobEmbedding(
   return embedding;
 }
 
-/** Resume-version embedding, computed and cached on first use. */
-async function ensureVersionEmbedding(
+/**
+ * Resume-version embedding, computed and cached on first use. Also used by
+ * Discover feed ranking (lib/actions/discover.ts).
+ */
+export async function ensureVersionEmbedding(
   profileId: string,
   version: typeof resumeVersions.$inferSelect,
   content: ResumeContent,

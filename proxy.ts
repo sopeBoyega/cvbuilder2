@@ -4,6 +4,7 @@ const protectedPrefixes = [
   "/applications",
   "/cover-letters",
   "/dashboard",
+  "/discover",
   "/insights",
   "/interview-prep",
   "/onboarding",
