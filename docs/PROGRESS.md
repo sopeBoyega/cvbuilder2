@@ -279,7 +279,10 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
       one bad query or embed is recorded in `errors` and the sweep continues.
     - `GET /api/cron/jobs`: refreshes the cache, gated on `CRON_SECRET`
       (refuses to run at all if unset — never runs open). `vercel.json` cron
-      entry fires it every 6h.
+      entry fires it once daily (`0 4 * * *`) — **owner confirmed Hobby plan
+      2026-07-16**, which caps cron at once/day with imprecise (±59min)
+      timing; do not change this to a sub-daily schedule without confirming
+      a Pro-plan upgrade first, or the deploy will fail outright.
     - `/discover` (new sidebar + mobile nav item, Compass icon): ranks the
       cached pool (embedded, <14 days old) against the user's most-recently-
       updated base resume's embedding (computed via the same
