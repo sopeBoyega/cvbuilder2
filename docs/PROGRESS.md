@@ -251,6 +251,81 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     GOTCHA for future OG work: Satori requires explicit `display: flex` on
     EVERY div with >1 child; missing it surfaces only as a generic "failed to
     pipe response" — the real cause is in the [cause] of the server log.
+  - DONE (2026-07-16): **about page rewritten for the stance** — states the
+    anti-fear-mongering position outright ("The pitch we refuse to make":
+    what recruiting software actually does, knockout questions as the real
+    automation), the three commitments (job-specific / ATS-safe with
+    testable parsing claims / transparent diagnostic score with explicit
+    "not a number any ATS assigns, doesn't predict interviews"), names the
+    early-career-tech ICP while welcoming others, and a "What we won't do"
+    list (no invented numbers, no gamed scores, no data hoarding). Complies
+    with rebranding.md §5 hard copy rules; links to /support (confirmed
+    guest-reachable — not in proxy.ts protected prefixes).
+  - DONE (2026-07-16), **ENV KEYS NEEDED BEFORE IT DOES ANYTHING**: **Discover
+    feed** — a new job-matching surface, not from a Stitch design (built
+    directly from the existing design system). Ranks external job listings
+    against the user's base resume by semantic similarity, reusing the
+    existing embeddings/cosine engine rather than adding a new one.
+    - `job_listings` table (migration `0012`, applied): a *shared* cache,
+      unlike the private per-user `jobs` table. Unique on (source,
+      external_id) for dedup across ingestion runs.
+    - `lib/jobs/jsearch.ts`: typed JSearch (RapidAPI) client — aggregates
+      Google for Jobs (LinkedIn/Indeed/Glassdoor) without touching any of
+      those APIs directly (Indeed's is closed to new publishers, LinkedIn has
+      none). Tolerant Zod parsing since it's a third-party shape.
+    - `lib/jobs/ingest.ts`: sweeps a curated 8-query set tuned to the locked
+      early-career-tech ICP (see `docs/rebranding.md`), upserts, embeds only
+      listings still missing one (new + previously-failed). Never throws —
+      one bad query or embed is recorded in `errors` and the sweep continues.
+    - `GET /api/cron/jobs`: refreshes the cache, gated on `CRON_SECRET`
+      (refuses to run at all if unset — never runs open). `vercel.json` cron
+      entry fires it once daily (`0 4 * * *`) — **owner confirmed Hobby plan
+      2026-07-16**, which caps cron at once/day with imprecise (±59min)
+      timing; do not change this to a sub-daily schedule without confirming
+      a Pro-plan upgrade first, or the deploy will fail outright.
+    - `/discover` (new sidebar + mobile nav item, Compass icon): ranks the
+      cached pool (embedded, <14 days old) against the user's most-recently-
+      updated base resume's embedding (computed via the same
+      `ensureVersionEmbedding` tailor.ts already uses — exported, not
+      duplicated), +5 display-score boost when a title matches a
+      `target_roles` entry. "Tailor my resume to this" reuses `createJob`
+      verbatim (copies the listing into the user's own private `jobs` row)
+      then seeds the wizard client-side and jumps to `/tailor/resume` — no
+      new mutation action needed. Honest empty states: no base resume yet,
+      cache still warming up (no embedded listings), nothing ranked this
+      round.
+    - **Owner action required**: set `JSEARCH_API_KEY` (RapidAPI) and
+      `CRON_SECRET` in Vercel env, or the feed stays empty forever (ingestion
+      throws `JSearchUnavailableError` and the cron route 503s without the
+      secret). Also add the cron secret to the Vercel Cron Jobs UI/env so its
+      request header matches.
+    - Verified: typecheck, lint, 70/70 tests. **Production build NOT verified
+      this session** — `next/font` failed to resolve `fonts.googleapis.com`
+      from this sandbox (DNS flake unrelated to this feature; general
+      internet connectivity confirmed fine). Run `pnpm build` once to confirm
+      before deploying.
+  - DONE (2026-07-16): **pagination** — new `components/ui/pager.tsx`
+    (Prev/Next + "Page X of Y", no page-number buttons since these lists run
+    tens of pages, not hundreds). Wired into the two real unbounded lists in
+    the app:
+    - **Resume Library**: 6/page (2 cols × 3 rows), paginating the
+      already-filtered/sorted array client-side (search still covers the
+      full dataset — only the *rendering* is paginated); page resets on
+      search/sort change, clamps on delete rather than needing an effect;
+      "New Professional Base" tile stays outside pagination, always visible.
+    - **Discover feed**: page.tsx's ranked cutoff raised from top 30 to top
+      60 (a quality floor, not a page size — below a threshold, more results
+      are just noise); `DiscoverFeed` paginates that array 10/page
+      client-side.
+    - Kanban board (`/applications`) deliberately NOT paginated — pagination
+      breaks drag-and-drop across columns; skipped, not missed. Insights'
+      "Latest tailored scores" and the dashboard's "recent resumes" are
+      intentionally-capped preview widgets (with a "View All" escape hatch),
+      not tables, so left alone.
+    - Verified: typecheck, lint, 70/70 tests. Build not reverified this pass
+      — same `fonts.googleapis.com` DNS flake as the Discover feature above,
+      confirmed unrelated (recurs on a totally different diff); run
+      `pnpm build` once before deploying.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections, ATS deep scan design.
 

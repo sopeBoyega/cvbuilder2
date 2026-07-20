@@ -20,6 +20,14 @@ const EnvSchema = z.object({
    * the DB only; with it, a copy is emailed to BRAND.contactEmail.
    */
   RESEND_API_KEY: z.string().min(1).optional(),
+  /** RapidAPI key for JSearch (Discover feed ingestion). Optional at boot. */
+  JSEARCH_API_KEY: z.string().min(1).optional(),
+  /**
+   * Shared secret the cron ingestion route requires in its Authorization
+   * header, so only Vercel Cron (or someone with the secret) can trigger it.
+   * Optional at boot, required at point of use.
+   */
+  CRON_SECRET: z.string().min(1).optional(),
   // Analytics (PostHog). Optional — lib/analytics.ts no-ops without the key.
   // Note: client code reads these via literal process.env.NEXT_PUBLIC_* refs
   // (this module is server-only); they're listed here for documentation and
@@ -38,6 +46,8 @@ export const env = EnvSchema.parse({
   PAYSTACK_PLAN_PRO_NGN: process.env.PAYSTACK_PLAN_PRO_NGN,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
+  JSEARCH_API_KEY: process.env.JSEARCH_API_KEY,
+  CRON_SECRET: process.env.CRON_SECRET,
   NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
   NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
 });

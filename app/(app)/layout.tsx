@@ -7,6 +7,7 @@ import { useClerk } from "@clerk/nextjs";
 import {
   Bell,
   Briefcase,
+  Compass,
   FileText,
   HelpCircle,
   Home,
@@ -29,6 +30,7 @@ import { cn } from "@/lib/utils";
  */
 const APP_NAV = [
   { href: "/dashboard", label: "Home", icon: Home },
+  { href: "/discover", label: "Discover", icon: Compass },
   { href: "/resumes", label: "Resumes", icon: FileText },
   { href: "/templates", label: "Templates", icon: LayoutTemplate },
   { href: "/applications", label: "Jobs", icon: Briefcase },
