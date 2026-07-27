@@ -31,14 +31,19 @@ const JSearchJob = z.object({
   job_description: z.string().nullable().optional(),
   job_apply_link: z.string().nullable().optional(),
   job_posted_at_datetime_utc: z.string().nullable().optional(),
-  job_min_salary: z.number().nullable().optional(),
-  job_max_salary: z.number().nullable().optional(),
-  job_salary_currency: z.string().nullable().optional(),
-  job_salary_period: z.string().nullable().optional(),
+  job_salary_string: z.string().nullable().optional(),
 });
 
+/**
+ * `/search-v2`'s payload nests jobs + a pagination cursor; the older
+ * `/search` returned the array directly. We only ever fetch page 1, so the
+ * cursor is unused.
+ */
 const JSearchResponse = z.object({
-  data: z.array(JSearchJob).optional().default([]),
+  data: z
+    .object({ jobs: z.array(JSearchJob).optional().default([]) })
+    .optional()
+    .default({ jobs: [] }),
 });
 
 export type NormalizedListing = {
@@ -61,11 +66,6 @@ function normalize(job: z.infer<typeof JSearchJob>): NormalizedListing | null {
     .filter(Boolean)
     .join(", ");
 
-  const salary =
-    job.job_min_salary && job.job_max_salary
-      ? `${job.job_salary_currency ?? ""} ${job.job_min_salary.toLocaleString()}-${job.job_max_salary.toLocaleString()}${job.job_salary_period ? ` / ${job.job_salary_period.toLowerCase()}` : ""}`.trim()
-      : null;
-
   return {
     externalId: job.job_id,
     title: job.job_title,
@@ -74,7 +74,7 @@ function normalize(job: z.infer<typeof JSearchJob>): NormalizedListing | null {
     remote: job.job_is_remote ?? false,
     description: job.job_description,
     url: job.job_apply_link ?? "",
-    salary,
+    salary: job.job_salary_string ?? null,
     postedAt: job.job_posted_at_datetime_utc
       ? new Date(job.job_posted_at_datetime_utc)
       : null,
@@ -102,7 +102,9 @@ export async function searchJobs(
   if (options.remoteOnly) params.set("remote_jobs_only", "true");
 
   const response = await fetch(
-    `https://${JSEARCH_HOST}/search?${params.toString()}`,
+    // The provider deprecated `/search` in favor of `/search-v2` (cursor-based
+    // pagination); we only ever fetch page 1 so the cursor is unused.
+    `https://${JSEARCH_HOST}/search-v2?${params.toString()}`,
     {
       headers: {
         "X-RapidAPI-Key": env.JSEARCH_API_KEY,
@@ -123,7 +125,7 @@ export async function searchJobs(
     throw new Error(`JSearch response shape changed: ${parsed.error.message}`);
   }
 
-  return parsed.data.data
+  return parsed.data.data.jobs
     .map(normalize)
     .filter((listing): listing is NormalizedListing => listing !== null);
 }

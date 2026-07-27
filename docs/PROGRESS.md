@@ -279,10 +279,37 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
       one bad query or embed is recorded in `errors` and the sweep continues.
     - `GET /api/cron/jobs`: refreshes the cache, gated on `CRON_SECRET`
       (refuses to run at all if unset — never runs open). `vercel.json` cron
-      entry fires it once daily (`0 4 * * *`) — **owner confirmed Hobby plan
-      2026-07-16**, which caps cron at once/day with imprecise (±59min)
-      timing; do not change this to a sub-daily schedule without confirming
-      a Pro-plan upgrade first, or the deploy will fail outright.
+      entry fires it every 6 hours (`0 */6 * * *`) — bumped from once/day
+      2026-07-24 now that the project is on a **Pro trial (14 days, $20
+      credit, started 2026-07-24)**; Hobby's once/day + imprecise-timing cron
+      cap no longer applies while the trial is active. **Revisit before the
+      trial/credit runs out**: either commit to Pro (this schedule needs it)
+      or drop back to `0 4 * * *` before reverting to Hobby, or the cron
+      entry will fail to deploy.
+    - **FIXED (2026-07-24): the feed was empty from day one, root-caused.**
+      Not an env-var problem — `JSEARCH_API_KEY`/`CRON_SECRET` were correctly
+      set in Vercel the whole time (confirmed: hitting the live
+      `/api/cron/jobs` unauthenticated returned our own `401`, not the
+      "not configured" `503`). The real bug: the upstream JSearch API on
+      RapidAPI deprecated `/search` in favor of `/search-v2` at some point
+      after this was built, which also **changed the response shape**
+      (`data.jobs[]` + a cursor, not `data[]` directly) and **dropped
+      `job_salary_currency`** in favor of a pre-formatted `job_salary_string`.
+      Every single ingestion query had been failing with a gateway-level
+      `404 Endpoint '/search' does not exist` since launch — confirmed by
+      running `ingestJobListings()` locally against the real API before the
+      fix (0 upserted, 8 errors) and after (34 upserted on the first sweep).
+      Fixed in `lib/jobs/jsearch.ts`: endpoint → `/search-v2`, Zod response
+      schema updated to the nested shape, salary now uses the API's own
+      formatted string. Typecheck clean. **Separately confirmed while
+      debugging**: `cvbuilder2-one.vercel.app` (referenced in
+      `NEXT_PUBLIC_APP_URL`, the Paystack webhook URL, and throughout this
+      doc) now 307-redirects to `curriculum-v.vercel.app`, which is the
+      actual live app (same Clerk-authenticated deployment) — looks like the
+      Vercel project got renamed at some point. **Not yet investigated
+      further**: whether Paystack's webhook sender follows that redirect for
+      POST deliveries, or just silently fails against the old URL. Worth
+      checking before relying on the webhook again.
     - `/discover` (new sidebar + mobile nav item, Compass icon): ranks the
       cached pool (embedded, <14 days old) against the user's most-recently-
       updated base resume's embedding (computed via the same
@@ -294,11 +321,9 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
       new mutation action needed. Honest empty states: no base resume yet,
       cache still warming up (no embedded listings), nothing ranked this
       round.
-    - **Owner action required**: set `JSEARCH_API_KEY` (RapidAPI) and
-      `CRON_SECRET` in Vercel env, or the feed stays empty forever (ingestion
-      throws `JSearchUnavailableError` and the cron route 503s without the
-      secret). Also add the cron secret to the Vercel Cron Jobs UI/env so its
-      request header matches.
+    - ~~Owner action required: set `JSEARCH_API_KEY`/`CRON_SECRET`~~
+      CONFIRMED 2026-07-24: both are set in Vercel and always were — the
+      empty feed was the `/search-v2` bug above, not missing keys.
     - Verified: typecheck, lint, 70/70 tests. **Production build NOT verified
       this session** — `next/font` failed to resolve `fonts.googleapis.com`
       from this sandbox (DNS flake unrelated to this feature; general
