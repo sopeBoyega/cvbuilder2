@@ -190,9 +190,22 @@ event isn't among those received, or the profile match failed silently.
 - `.env.local` (and **Vercel env**) need: `PAYSTACK_SECRET_KEY`,
   `PAYSTACK_PLAN_PRO_NGN` (currently `PLN_a5ahcuac4elowvj` — the owner changed the
   plan code once; confirm it's current), `NEXT_PUBLIC_APP_URL` =
-  `https://cvbuilder2-one.vercel.app`, plus the existing Clerk/DB/Gemini vars.
+  `https://cvbuilder.digital`, plus the existing Clerk/DB/Gemini vars.
 - Webhook URL registered in Paystack:
-  `https://cvbuilder2-one.vercel.app/api/webhooks/paystack`.
+  `https://cvbuilder.digital/api/webhooks/paystack`.
+- **2026-07-27 domain migration:** the Vercel project was renamed at some point
+  after 2026-07-13, so `https://cvbuilder2-one.vercel.app` (the domain the
+  webhook + `NEXT_PUBLIC_APP_URL` were pointed at) now 307-redirects to
+  `https://curriculum-v.vercel.app`. Webhook senders (Paystack included, by
+  strong industry convention — Stripe documents this explicitly) do **not**
+  follow redirects on POST, so any webhook fired at the old URL almost
+  certainly failed silently as soon as the rename took effect. Owner bought
+  **`cvbuilder.digital`** as the permanent custom domain to stop chasing
+  Vercel's auto-generated project aliases. Legal docs (`content/legal/*.md`)
+  updated to the new domain. **Still needs owner action:** add
+  `cvbuilder.digital` as the Production Domain in Vercel, update
+  `NEXT_PUBLIC_APP_URL` in Vercel env, update the webhook URL in the Paystack
+  dashboard, and check Clerk's allowed origins — see chat for full steps.
 - **Test vs live mode:** a Paystack plan only exists in the mode its key belongs
   to. `sk_test_…` key ⇒ create the plan in **Test mode** and pay with test card
   `4084 0840 8408 4081`, any future expiry/CVV, OTP `123456`. Mode mismatch ⇒
@@ -222,7 +235,7 @@ Once Pro is confirmed active, `isPro()` gates the AI quota
   exists, unused).
 - **Editor** can't edit education/projects/certifications yet (preserved on save).
 - **Stripe** webhook route is a stub; Stripe is named in legal docs but Paystack
-  is the active processor. Contact email in docs/brand: `contact.cvbuilder@gmail.com`.
+  is the active processor. Contact email in docs/brand: `support@cvbuilder.digital`.
 - **PostHog needs its key**: code is wired (`lib/analytics.ts`), but
   `NEXT_PUBLIC_POSTHOG_KEY` must be set in `.env.local` + Vercel or the funnel
   still measures nothing.
