@@ -351,6 +351,37 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
       — same `fonts.googleapis.com` DNS flake as the Discover feature above,
       confirmed unrelated (recurs on a totally different diff); run
       `pnpm build` once before deploying.
+  - DONE (2026-07-27): **domain + brand cutover, Discover unblocked, dashboard
+    stats, URL scraper.**
+    - **cvbuilder.digital is the production domain** (owner bought it via
+      Vercel after the project rename broke `cvbuilder2-one.vercel.app` — see
+      §6). Legal docs + `BRAND.contactEmail` (`support@cvbuilder.digital`)
+      updated. New `cv_avatar` mark everywhere: `app/icon.svg`,
+      multi-res `favicon.ico`, new `apple-icon.png`, and `components/shell/
+      logo.tsx` now renders `/cv-avatar.svg` (fixed-color badge — no longer
+      inherits `currentColor`).
+    - **Discover was empty because the Gemini free tier was exhausted** — all
+      44 cached listings had NULL embeddings (ingestion itself was fine; the
+      prod cron runs). Owner enabled billing ($10). One-off healer script
+      `scripts/backfill-embeddings.mjs` (same model/dims/taskType as
+      `lib/ai/embeddings.ts`; run with `node --env-file=.env.local …`)
+      embedded 44/44. Future cron sweeps self-heal now that the key has quota.
+      Cost reality: embeddings ≈ pennies/month; generation ≈ $0.02–0.03 per
+      full tailoring session.
+    - **Dashboard stat cards are real** (were hardcoded "n/a"/"0", and the
+      Resumes card showed the 5-capped list length): Avg ATS Score = same
+      aggregate as /insights (tailored+scored variants), Active Apps =
+      applied/interviewing/offer count, Resumes = true count(*).
+    - **Wizard "From URL" tab now works** — `lib/jobs/scrape.ts` fetches the
+      posting server-side (signed-in only; SSRF hostname guard; 10s timeout;
+      browser UA), prefers **JobPosting JSON-LD** (Greenhouse/Lever/Workable/
+      Ashby/career pages have it for Google for Jobs) → clean description +
+      title/company prefill; falls back to main-region text. Bot-walled sites
+      (LinkedIn/Indeed) fail with an honest "paste instead" message — pasting
+      stays the primary path. Action: `extractJobDescriptionFromUrl`
+      (tailor.ts). 8 new parser tests (`tests/jobs/scrape.test.ts`).
+    - Verified: typecheck, lint, 78/78 tests. Build still not verifiable in
+      this sandbox (fonts.googleapis.com DNS) — Vercel builds are unaffected.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections, ATS deep scan design.
 

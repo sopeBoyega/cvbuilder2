@@ -22,7 +22,11 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { createJob, extractJobDescriptionFromFile } from "@/lib/actions/tailor";
+import {
+  createJob,
+  extractJobDescriptionFromFile,
+  extractJobDescriptionFromUrl,
+} from "@/lib/actions/tailor";
 import { extractJobKeywords } from "@/lib/ats";
 import { detectSeniority } from "@/lib/ats/seniority";
 import { useWizard } from "@/lib/stores/wizard";
@@ -83,6 +87,23 @@ export function JobStep() {
     });
   }
 
+  function handleFetchUrl() {
+    setError(null);
+    startExtracting(async () => {
+      const result = await extractJobDescriptionFromUrl(url);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setDescription(result.text);
+      // Prefill meta from the posting's structured data, never overwriting
+      // anything the user already typed.
+      if (result.title && !title) setTitle(result.title);
+      if (result.company && !company) setCompany(result.company);
+      setMode("paste");
+    });
+  }
+
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -123,8 +144,8 @@ export function JobStep() {
         <ModeButton
           icon={Link2}
           label="From URL"
-          disabled
-          title="Most job boards block automated fetching, and their terms restrict it. Paste the text instead."
+          active={mode === "url"}
+          onClick={() => setMode("url")}
         />
         <ModeButton
           icon={Upload}
@@ -187,6 +208,40 @@ export function JobStep() {
         </div>
       </div>
 
+      {/* URL mode: fetch the posting server-side, drop the text into the box */}
+      {mode === "url" ? (
+        <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-6">
+          <p className="text-sm leading-6 text-on-surface-variant">
+            Paste the posting&apos;s link and we&apos;ll pull the description
+            for you. Works on most job boards and career pages; sites that
+            block fetching (LinkedIn, Indeed) will ask you to paste instead.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <input
+              type="url"
+              aria-label="Posting URL to fetch"
+              value={url}
+              onChange={(event) => setUrl(event.target.value)}
+              placeholder="https://boards.greenhouse.io/…"
+              className={cn(FIELD, "flex-1")}
+            />
+            <button
+              type="button"
+              onClick={handleFetchUrl}
+              disabled={extracting || url.trim().length === 0}
+              className="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-bold text-on-primary transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {extracting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Link2 className="size-4" />
+              )}
+              Fetch description
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {/* Main input + live detection */}
       <div className="flex flex-col gap-6 rounded-xl border border-border bg-surface p-6 transition-all duration-500 hover:border-primary/30 hover:shadow-[0_0_20px_rgba(119,220,132,0.1)]">
         <div className="relative">
@@ -202,7 +257,7 @@ export function JobStep() {
           {extracting ? (
             <div className="absolute inset-0 flex items-center justify-center gap-3 rounded-lg bg-surface/80 text-sm text-on-surface-variant backdrop-blur-sm">
               <Loader2 className="size-5 animate-spin text-primary" />
-              Reading your file…
+              {mode === "url" ? "Fetching the posting…" : "Reading your file…"}
             </div>
           ) : null}
         </div>
