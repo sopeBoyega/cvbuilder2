@@ -4,7 +4,7 @@
 
 This Privacy Notice for **CV Builder** ('we', 'us', or 'our') describes how and why we might access, collect, store, use, and/or share ('process') your personal information when you use our services ('Services'), including when you:
 
-- Visit our website at [https://cvbuilder2-one.vercel.app/](https://cvbuilder2-one.vercel.app/), or any website of ours that links to this Privacy Notice
+- Visit our website at [https://cvbuilder.digital/](https://cvbuilder.digital/), or any website of ours that links to this Privacy Notice
 - Use CVBuilder. CVBuilder is an AI web + mobile app that tailors a job seeker's CV/resume to a specific job description, optimizes it to pass ATS (applicant tracking system) filters, and helps them land interviews. Audience: job seekers of all levels, many non-designers, time-poor and stressed
 - Engage with us in other related ways, including any marketing or events
 
