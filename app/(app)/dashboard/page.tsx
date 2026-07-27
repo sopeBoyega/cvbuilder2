@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import {
   ArrowRight,
   FilePlus2,
@@ -13,7 +13,12 @@ import {
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { db } from "@/lib/db";
-import { profiles, resumes } from "@/lib/db/schema";
+import {
+  applications,
+  profiles,
+  resumeVersions,
+  resumes,
+} from "@/lib/db/schema";
 import { cn, timeAgo } from "@/lib/utils";
 
 const CARD_HOVER =
@@ -33,6 +38,9 @@ export default async function DashboardPage() {
   // Pull the mirrored profile + this user's resumes. A brand-new account may
   // have no profile row yet (webhook still in flight) — treat that as empty.
   let resumeList: (typeof resumes.$inferSelect)[] = [];
+  let avgScore: number | null = null;
+  let activeApps = 0;
+  let resumeCount = 0;
   if (user) {
     const [profile] = await db
       .select()
@@ -41,23 +49,74 @@ export default async function DashboardPage() {
       .limit(1);
 
     if (profile) {
-      resumeList = await db
-        .select()
-        .from(resumes)
-        .where(eq(resumes.profileId, profile.id))
-        .orderBy(desc(resumes.updatedAt))
-        .limit(5);
+      // Same definitions as /insights: avg score is over tailored, scored
+      // variants; "active" applications are in play (applied → offer), i.e.
+      // not still just saved and not rejected.
+      const [recent, [scoreRow], [activeRow], [countRow]] = await Promise.all([
+        db
+          .select()
+          .from(resumes)
+          .where(eq(resumes.profileId, profile.id))
+          .orderBy(desc(resumes.updatedAt))
+          .limit(5),
+        db
+          .select({
+            avg: sql<number | null>`round(avg(${resumeVersions.atsScore}))::int`,
+            count: sql<number>`count(*)::int`,
+          })
+          .from(resumeVersions)
+          .innerJoin(resumes, eq(resumes.id, resumeVersions.resumeId))
+          .where(
+            and(
+              eq(resumes.profileId, profile.id),
+              isNotNull(resumeVersions.tailoredForJobId),
+              isNotNull(resumeVersions.atsScore),
+            ),
+          ),
+        db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(applications)
+          .where(
+            and(
+              eq(applications.profileId, profile.id),
+              inArray(applications.status, [
+                "applied",
+                "interviewing",
+                "offer",
+              ]),
+            ),
+          ),
+        db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(resumes)
+          .where(eq(resumes.profileId, profile.id)),
+      ]);
+
+      resumeList = recent;
+      avgScore = scoreRow?.count ? scoreRow.avg : null;
+      activeApps = activeRow?.count ?? 0;
+      resumeCount = countRow?.count ?? 0;
     }
   }
 
   const hasResumes = resumeList.length > 0;
 
   const stats = [
-    { label: "Avg ATS Score", value: "n/a", icon: Star, accent: "text-indigo-hi" },
-    { label: "Active Apps", value: "0", icon: Send, accent: "text-blue" },
+    {
+      label: "Avg ATS Score",
+      value: avgScore === null ? "n/a" : String(avgScore),
+      icon: Star,
+      accent: "text-indigo-hi",
+    },
+    {
+      label: "Active Apps",
+      value: String(activeApps),
+      icon: Send,
+      accent: "text-blue",
+    },
     {
       label: "Resumes",
-      value: String(resumeList.length),
+      value: String(resumeCount),
       icon: FileText,
       accent: "text-primary",
     },

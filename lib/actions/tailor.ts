@@ -30,6 +30,7 @@ import {
   MAX_FILE_BYTES,
   extractTextFromFile,
 } from "@/lib/documents/extract-text";
+import { ScrapeError, fetchJobPostingFromUrl } from "@/lib/jobs/scrape";
 import type { GapQuestion } from "@/lib/validation/ai";
 import { AtsAnalysis } from "@/lib/validation/ats";
 import { JobInput } from "@/lib/validation/job";
@@ -189,6 +190,41 @@ export async function extractJobDescriptionFromFile(
         error instanceof Error
           ? error.message
           : "We couldn't read that file. Paste the text instead.",
+    };
+  }
+}
+
+export type ExtractJobFromUrlState =
+  | { ok: true; text: string; title: string | null; company: string | null }
+  | { ok: false; error: string };
+
+/**
+ * Step 1's "From URL" tab: fetch the posting page server-side and pull the
+ * description out of its JobPosting JSON-LD (fallback: readable text). Signed
+ * in only — this is a server-side fetch of an arbitrary URL, so it is not
+ * left open to anonymous traffic.
+ */
+export async function extractJobDescriptionFromUrl(
+  rawUrl: unknown,
+): Promise<ExtractJobFromUrlState> {
+  const { userId } = await auth();
+  if (!userId) return { ok: false, error: "You need to be signed in." };
+
+  const parsed = z.url().safeParse(rawUrl);
+  if (!parsed.success) {
+    return { ok: false, error: "Paste the posting's full link (https://…)." };
+  }
+
+  try {
+    const scraped = await fetchJobPostingFromUrl(parsed.data);
+    return { ok: true, ...scraped };
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof ScrapeError
+          ? error.message
+          : "We couldn't read that page. Paste the description instead.",
     };
   }
 }
