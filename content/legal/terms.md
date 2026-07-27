@@ -4,7 +4,7 @@
 
 ## AGREEMENT TO OUR LEGAL TERMS
 
-These Terms of Service ('Terms') constitute a legally binding agreement made between you, whether personally or on behalf of an entity ('you'), and **CV Builder** ('we', 'us', or 'our'), concerning your access to and use of our website at [https://cvbuilder2-one.vercel.app/](https://cvbuilder2-one.vercel.app/) and the CVBuilder application and related services (collectively, the 'Services').
+These Terms of Service ('Terms') constitute a legally binding agreement made between you, whether personally or on behalf of an entity ('you'), and **CV Builder** ('we', 'us', or 'our'), concerning your access to and use of our website at [https://cvbuilder.digital/](https://cvbuilder.digital/) and the CVBuilder application and related services (collectively, the 'Services').
 
 CVBuilder is an AI-powered web and mobile application that helps job seekers tailor their CV/resume to a specific job description, optimise it to pass applicant tracking system (ATS) filters, generate related documents such as cover letters, and manage their job applications.
 
@@ -77,7 +77,7 @@ We reserve the right to suspend or terminate accounts, remove or reclaim usernam
 
 You may cancel a recurring subscription at any time through your account settings or by contacting us. Cancellation takes effect at the end of your current billing period. After cancellation, you will retain access to paid features until the end of the period for which you have already paid, after which your account will revert to the free tier.
 
-**Refunds.** Except where required by applicable law, fees are non-refundable and there are no refunds or credits for partially used periods, one-time purchases, or unused features. If you believe you have been charged in error, please contact us at contact.cvbuilder@gmail.com and we will review your request.
+**Refunds.** Except where required by applicable law, fees are non-refundable and there are no refunds or credits for partially used periods, one-time purchases, or unused features. If you believe you have been charged in error, please contact us at support@cvbuilder.digital and we will review your request.
 
 ---
 
@@ -193,5 +193,5 @@ These Terms and any policies or operating rules posted by us constitute the enti
 In order to resolve a complaint regarding the Services, or to receive further information regarding use of the Services, please contact us at:
 
 CV Builder
-Email: contact.cvbuilder@gmail.com
+Email: support@cvbuilder.digital
 Nigeria
