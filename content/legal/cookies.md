@@ -2,7 +2,7 @@
 
 **Last updated July 11, 2026**
 
-This Cookie Policy explains how **CV Builder** ('we', 'us', or 'our') uses cookies and similar technologies to recognise you when you visit our website at [https://cvbuilder2-one.vercel.app/](https://cvbuilder2-one.vercel.app/) and use our Services ('Services'). It explains what these technologies are and why we use them, as well as your rights to control our use of them.
+This Cookie Policy explains how **CV Builder** ('we', 'us', or 'our') uses cookies and similar technologies to recognise you when you visit our website at [https://cvbuilder.digital/](https://cvbuilder.digital/) and use our Services ('Services'). It explains what these technologies are and why we use them, as well as your rights to control our use of them.
 
 In some cases we may use cookies to collect personal information, or information that becomes personal information if we combine it with other information. For more information about how we process your personal information, please see our Privacy Policy.
 
@@ -97,4 +97,4 @@ The date at the top of this Cookie Policy indicates when it was last updated.
 
 ## WHERE CAN YOU GET FURTHER INFORMATION?
 
-If you have any questions about our use of cookies or other technologies, please email us at contact.cvbuilder@gmail.com.
+If you have any questions about our use of cookies or other technologies, please email us at support@cvbuilder.digital.
