@@ -57,6 +57,41 @@
       "when": 1783953265612,
       "tag": "0007_sad_venus",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783962430717,
+      "tag": "0008_eager_human_torch",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783977287552,
+      "tag": "0009_clammy_black_knight",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1783980930609,
+      "tag": "0010_fair_thunderbolt_ross",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784109746505,
+      "tag": "0011_mute_tyger_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1784546715781,
+      "tag": "0012_dazzling_rafael_vega",
+      "breakpoints": true
     }
   ]
 }

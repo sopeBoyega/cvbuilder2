@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Building2, GripVertical, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Building2, GripVertical, MessagesSquare, Trash2 } from "lucide-react";
 
 import { ScoreRing } from "@/components/score-ring";
 import { useKanban, type KanbanCard } from "@/lib/stores/kanban";
@@ -120,7 +121,12 @@ function Card({
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold text-on-surface">
-            {card.jobTitle}
+            <Link
+              href={`/applications/${card.id}`}
+              className="transition-colors hover:text-primary"
+            >
+              {card.jobTitle}
+            </Link>
           </h3>
           {card.company ? (
             <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-on-surface-variant">
@@ -147,6 +153,14 @@ function Card({
         </div>
 
         <div className="flex items-center gap-1">
+          <Link
+            href={`/interview-prep/${card.id}`}
+            aria-label="Interview prep"
+            title="Interview prep"
+            className="rounded p-1 text-on-surface-variant transition-colors hover:text-indigo-hi"
+          >
+            <MessagesSquare className="size-3.5" />
+          </Link>
           {/* Keyboard/mobile fallback for the drag interaction. */}
           <select
             aria-label="Move to column"

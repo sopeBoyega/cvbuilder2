@@ -12,6 +12,13 @@ import { DEFAULT_TEMPLATE_ID, TEMPLATES } from "@/lib/documents/templates";
 
 const PDF_MAGIC = "%PDF";
 
+/*
+ * The first render embeds fonts and warms @react-pdf's layout engine, which
+ * can exceed vitest's 5s default on a loaded machine (observed: ~14-20s).
+ * Generous timeout so the suite tests correctness, not machine load.
+ */
+const PDF_RENDER_TIMEOUT_MS = 30_000;
+
 async function textOf(pdf: Buffer): Promise<string> {
   const { text } = await extractText(new Uint8Array(pdf), { mergePages: true });
   return text.replace(/\s+/g, " ");
@@ -26,12 +33,16 @@ describe("renderResumePdf", () => {
 
   for (const template of TEMPLATES) {
     describe(template.name, () => {
-      it("produces a real PDF", async () => {
-        const pdf = await renderResumePdf(template.id, SAMPLE_RESUME);
+      it(
+        "produces a real PDF",
+        async () => {
+          const pdf = await renderResumePdf(template.id, SAMPLE_RESUME);
 
-        expect(pdf.byteLength).toBeGreaterThan(1000);
-        expect(pdf.subarray(0, 4).toString("latin1")).toBe(PDF_MAGIC);
-      });
+          expect(pdf.byteLength).toBeGreaterThan(1000);
+          expect(pdf.subarray(0, 4).toString("latin1")).toBe(PDF_MAGIC);
+        },
+        PDF_RENDER_TIMEOUT_MS,
+      );
 
       /*
        * The whole ATS-safe promise rests on the PDF containing real, selectable
@@ -39,40 +50,52 @@ describe("renderResumePdf", () => {
        * back out with the same parser we use to read uploaded resumes: if unpdf
        * can read it, an ATS can too.
        */
-      it("contains selectable text an ATS can read", async () => {
-        const pdf = await renderResumePdf(template.id, SAMPLE_RESUME);
-        const text = await textOf(pdf);
+      it(
+        "contains selectable text an ATS can read",
+        async () => {
+          const pdf = await renderResumePdf(template.id, SAMPLE_RESUME);
+          const text = await textOf(pdf);
 
-        expect(text).toContain("Ada Lovelace");
-        expect(text).toContain("ada@example.com");
-        expect(text).toContain("Staff Engineer");
-        expect(text).toContain("Analytical Engines");
-        // A bullet, verbatim.
-        expect(text).toContain("cutting median query latency");
-        // Skills survive as text, not as graphics.
-        expect(text).toContain("Kubernetes");
-      });
+          expect(text).toContain("Ada Lovelace");
+          expect(text).toContain("ada@example.com");
+          expect(text).toContain("Staff Engineer");
+          expect(text).toContain("Analytical Engines");
+          // A bullet, verbatim.
+          expect(text).toContain("cutting median query latency");
+          // Skills survive as text, not as graphics.
+          expect(text).toContain("Kubernetes");
+        },
+        PDF_RENDER_TIMEOUT_MS,
+      );
 
-      it("round-trips every work bullet", async () => {
-        const pdf = await renderResumePdf(template.id, SAMPLE_RESUME);
-        const text = await textOf(pdf);
+      it(
+        "round-trips every work bullet",
+        async () => {
+          const pdf = await renderResumePdf(template.id, SAMPLE_RESUME);
+          const text = await textOf(pdf);
 
-        for (const entry of SAMPLE_RESUME.work) {
-          for (const bullet of entry.bullets) {
-            expect(text).toContain(bullet.slice(0, 40));
+          for (const entry of SAMPLE_RESUME.work) {
+            for (const bullet of entry.bullets) {
+              expect(text).toContain(bullet.slice(0, 40));
+            }
           }
-        }
-      });
+        },
+        PDF_RENDER_TIMEOUT_MS,
+      );
     });
   }
 
-  it("renders a resume with only the required fields", async () => {
-    const minimal = { ...SAMPLE_RESUME, basics: { name: "Solo", links: [] }, summary: undefined, work: [], education: [], skills: [], projects: [], certifications: [] };
-    const pdf = await renderResumePdf(DEFAULT_TEMPLATE_ID, minimal);
+  it(
+    "renders a resume with only the required fields",
+    async () => {
+      const minimal = { ...SAMPLE_RESUME, basics: { name: "Solo", links: [] }, summary: undefined, work: [], education: [], skills: [], projects: [], certifications: [] };
+      const pdf = await renderResumePdf(DEFAULT_TEMPLATE_ID, minimal);
 
-    expect(pdf.subarray(0, 4).toString("latin1")).toBe(PDF_MAGIC);
-    expect(await textOf(pdf)).toContain("Solo");
-  });
+      expect(pdf.subarray(0, 4).toString("latin1")).toBe(PDF_MAGIC);
+      expect(await textOf(pdf)).toContain("Solo");
+    },
+    PDF_RENDER_TIMEOUT_MS,
+  );
 });
 
 describe("resolveTemplateId", () => {

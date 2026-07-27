@@ -78,7 +78,7 @@ export function QuestionsStep() {
       return (
         <UpgradePrompt
           title="You've used today's free AI runs"
-          description="Upgrade to keep generating gap questions and drafts, or continue in the editor — your analysis and score are untouched."
+          description="Upgrade to keep generating gap questions and drafts, or continue in the editor. Your analysis and score are untouched."
           dismissLabel="Continue to editor"
           onDismiss={continueToEditor}
           className="my-16"
@@ -182,7 +182,7 @@ export function QuestionsStep() {
 
             <div className="mt-3 flex items-center justify-between gap-4">
               <p className="text-xs text-on-surface-variant">
-                {draftError ?? "A draft is a starting point — edit it to be true."}
+                {draftError ?? "A draft is a starting point. Edit it to be true."}
               </p>
               <button
                 type="button"
@@ -211,7 +211,7 @@ export function QuestionsStep() {
               </p>
               <p className="mt-2 text-sm text-on-surface-variant">
                 Your resume is missing{" "}
-                <span className="rounded border border-coral-hi/30 bg-coral-hi/10 px-1.5 py-0.5 font-mono text-coral-hi">
+                <span className="wrap-anywhere rounded border border-coral-hi/30 bg-coral-hi/10 px-1.5 py-0.5 font-mono text-coral-hi">
                   {current.targetKeyword}
                 </span>
                 .

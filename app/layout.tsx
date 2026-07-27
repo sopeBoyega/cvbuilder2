@@ -22,6 +22,11 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  // Absolute base for OG/social images. Falls back to the Vercel deploy URL
+  // when NEXT_PUBLIC_APP_URL isn't set (fine for previews; set it in prod).
+  metadataBase: process.env.NEXT_PUBLIC_APP_URL
+    ? new URL(process.env.NEXT_PUBLIC_APP_URL)
+    : undefined,
   title: {
     default: BRAND.name,
     template: `%s · ${BRAND.name}`,

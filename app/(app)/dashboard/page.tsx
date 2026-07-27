@@ -53,7 +53,7 @@ export default async function DashboardPage() {
   const hasResumes = resumeList.length > 0;
 
   const stats = [
-    { label: "Avg ATS Score", value: "—", icon: Star, accent: "text-indigo-hi" },
+    { label: "Avg ATS Score", value: "n/a", icon: Star, accent: "text-indigo-hi" },
     { label: "Active Apps", value: "0", icon: Send, accent: "text-blue" },
     {
       label: "Resumes",

@@ -4,9 +4,11 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Check, Loader2, Plus, Save, Trash2 } from "lucide-react";
 
+import { UpgradePrompt } from "@/components/billing/upgrade-prompt";
 import { ScoreRing } from "@/components/score-ring";
 import { saveResumeContent } from "@/lib/actions/resume";
 import { saveTailoredResume } from "@/lib/actions/tailor";
+import { isTailorLimitError } from "@/lib/billing/limits";
 import { analyzeResume } from "@/lib/ats";
 import type { GapAnswer } from "@/lib/validation/ai";
 import { ResumeContent, type WorkEntry } from "@/lib/validation/resume";
@@ -210,8 +212,9 @@ export function ResumeEditor({
           ) : (
             <>
               <p className="mb-3 text-xs text-on-surface-variant">
-                Click a keyword to add it to your skills — only where it&apos;s
-                truthful. It turns green once it appears in your resume.
+                Click a keyword to add it to your skills, but only where
+                it&apos;s truthful. It turns green once it appears in your
+                resume.
               </p>
               <div className="flex flex-wrap gap-2">
                 {analysis.missing.map((term) => (
@@ -220,10 +223,10 @@ export function ResumeEditor({
                     type="button"
                     onClick={() => addSkill(term)}
                     title={`Add "${term}" to skills`}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded border border-coral-hi/20 bg-coral-hi/10 px-2 py-0.5 font-mono text-xs text-coral-hi transition-colors hover:border-coral-hi hover:bg-coral-hi/20"
+                    className="inline-flex max-w-full cursor-pointer items-center gap-1.5 rounded border border-coral-hi/20 bg-coral-hi/10 px-2 py-0.5 font-mono text-xs text-coral-hi transition-colors hover:border-coral-hi hover:bg-coral-hi/20"
                   >
-                    <Plus className="size-3" />
-                    {term}
+                    <Plus className="size-3 shrink-0" />
+                    <span className="min-w-0 wrap-anywhere text-left">{term}</span>
                   </button>
                 ))}
               </div>
@@ -235,10 +238,10 @@ export function ResumeEditor({
               {analysis.matched.map((term) => (
                 <span
                   key={term}
-                  className="inline-flex items-center gap-1.5 rounded border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary"
+                  className="inline-flex max-w-full items-center gap-1.5 rounded border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary"
                 >
-                  <Check className="size-3" />
-                  {term}
+                  <Check className="size-3 shrink-0" />
+                  <span className="min-w-0 wrap-anywhere">{term}</span>
                 </span>
               ))}
             </div>
@@ -294,10 +297,21 @@ export function ResumeEditor({
       ) : null}
 
       {error ? (
-        <p role="alert" className="flex items-start gap-2 text-sm text-destructive">
-          <AlertCircle className="mt-0.5 size-4 shrink-0" />
-          {error}
-        </p>
+        isTailorLimitError(error) ? (
+          // Monthly free cap hit on save — pitch Pro; the draft stays intact.
+          <UpgradePrompt
+            title="That's your free tailoring for this month"
+            description={error}
+          />
+        ) : (
+          <p
+            role="alert"
+            className="flex items-start gap-2 text-sm text-destructive"
+          >
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            {error}
+          </p>
+        )
       ) : null}
 
       {/* Basics */}

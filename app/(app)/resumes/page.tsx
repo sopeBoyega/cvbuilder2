@@ -10,6 +10,7 @@ import {
 } from "@/components/resumes/resume-library";
 import { db } from "@/lib/db";
 import { jobs, profiles, resumeVersions, resumes } from "@/lib/db/schema";
+import { DEFAULT_TEMPLATE_ID, getTemplate } from "@/lib/documents/templates";
 import { timeAgo } from "@/lib/utils";
 import { ResumeContent } from "@/lib/validation/resume";
 
@@ -78,6 +79,12 @@ async function loadResumeGroups(): Promise<ResumeGroup[]> {
         id: resume.id,
         title: resume.title,
         isBase: resume.isBase,
+        // The export template this resume uses — shown instead of the old
+        // static "Main master template" label, and it follows their pick.
+        templateName: (
+          getTemplate(resume.templateId ?? DEFAULT_TEMPLATE_ID) ??
+          getTemplate(DEFAULT_TEMPLATE_ID)
+        )!.name,
         updatedAtIso: resume.updatedAt.toISOString(),
         updatedLabel: timeAgo(resume.updatedAt),
         atsScore: null,

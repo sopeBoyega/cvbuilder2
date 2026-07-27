@@ -14,8 +14,8 @@ import { leads } from "@/lib/db/schema";
 
 const LeadInput = z.object({
   email: z.email("Enter a valid email address."),
-  source: z.enum(["ats_checker"]),
-  /** Keyword coverage shown at capture; null if somehow absent. */
+  source: z.enum(["ats_checker", "newsletter"]),
+  /** Keyword coverage shown at capture; null outside the checker. */
   checkerScore: z.number().int().min(0).max(100).nullable(),
 });
 
@@ -42,6 +42,6 @@ export async function captureLead(
     return { ok: true };
   } catch {
     // Never block the visitor's path forward over a lead write.
-    return { ok: false, error: "Something went wrong — try again." };
+    return { ok: false, error: "Something went wrong. Try again." };
   }
 }

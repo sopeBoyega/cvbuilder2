@@ -9,10 +9,16 @@ import posthog from "posthog-js";
  */
 
 export type AnalyticsEvent =
-  /** A guest ran the free ATS checker and got a score. */
+  /** The free checker page was opened (referrer + UTM props). */
+  | "checker_page_viewed"
+  /** A resume file was attached (checker or onboarding; see `location`). */
+  | "resume_uploaded"
+  /** A guest ran the free checker and got a score (incl. `duration_ms`). */
   | "checker_used"
-  /** A guest left their email (e.g. on checker results). */
+  /** A guest left their email (e.g. on checker results, newsletter). */
   | "email_captured"
+  /** The share-my-score card was shared (or its link copied). */
+  | "share_card_clicked"
   /** A marketing CTA was clicked; `cta` names which, `location` names where. */
   | "cta_clicked";
 

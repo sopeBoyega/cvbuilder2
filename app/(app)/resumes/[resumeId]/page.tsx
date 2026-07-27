@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { ArrowLeft, Mail, MapPin, Phone, SquarePen } from "lucide-react";
 
+import { isPro } from "@/lib/billing/entitlements";
 import { db } from "@/lib/db";
 import { profiles, resumeVersions, resumes } from "@/lib/db/schema";
 import { ExportControl } from "@/components/resumes/export-control";
@@ -54,10 +55,12 @@ export default async function ResumeEditorPage({
 
   const parsed = version ? ResumeContent.safeParse(version.content) : null;
   const content = parsed?.success ? parsed.data : null;
+  const pro = await isPro(profile.id);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-4 md:p-8">
-      <div className="flex items-center justify-between gap-4">
+      {/* Toolbar wraps into rows on narrow screens instead of crushing the badge. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <Link
           href="/resumes"
           className="inline-flex items-center gap-2 text-sm text-on-surface-variant transition-colors hover:text-primary"
@@ -65,9 +68,9 @@ export default async function ResumeEditorPage({
           <ArrowLeft className="size-4" />
           Resumes
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
           {version ? (
-            <span className="rounded-full border border-border bg-surface px-3 py-1 text-xs uppercase tracking-wider text-on-surface-variant">
+            <span className="whitespace-nowrap rounded-full border border-border bg-surface px-3 py-1 text-xs uppercase tracking-wider text-on-surface-variant">
               {version.source === "edit" ? "Edited" : `Parsed from ${version.source}`}
               {version.atsScore !== null ? ` · ATS ${version.atsScore}` : ""}
             </span>
@@ -83,6 +86,7 @@ export default async function ResumeEditorPage({
             <ExportControl
               resumeId={resume.id}
               initialTemplateId={resume.templateId}
+              isPro={pro}
             />
           ) : null}
         </div>
@@ -246,7 +250,7 @@ function ResumeView({
             {content.certifications.map((entry, index) => (
               <li key={`${entry.name}-${index}`}>
                 {entry.name}
-                {entry.issuer ? ` — ${entry.issuer}` : ""}
+                {entry.issuer ? ` · ${entry.issuer}` : ""}
                 {entry.year ? ` (${entry.year})` : ""}
               </li>
             ))}

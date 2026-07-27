@@ -10,6 +10,7 @@ import {
   Loader2,
   Mail,
   Radar,
+  Share2,
   Upload,
   X,
 } from "lucide-react";
@@ -35,6 +36,7 @@ export function AtsCheckerTool() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    const startedAt = performance.now();
     startTransition(async () => {
       const checked = await checkAtsMatch(data);
       setResult(checked);
@@ -43,6 +45,7 @@ export function AtsCheckerTool() {
           coverage: checked.coverage,
           matched: checked.matched.length,
           missing: checked.missing.length,
+          duration_ms: Math.round(performance.now() - startedAt),
         });
       }
     });
@@ -129,7 +132,7 @@ export function AtsCheckerTool() {
               {fileName ?? "Choose a PDF or Word file"}
             </span>
             <span className="text-xs text-on-surface-variant">
-              We read the text only — nothing is stored.
+              We read the text only; nothing is stored.
             </span>
           </button>
           <input
@@ -138,9 +141,17 @@ export function AtsCheckerTool() {
             name="file"
             accept=".pdf,.docx"
             className="hidden"
-            onChange={(event) =>
-              setFileName(event.target.files?.[0]?.name ?? null)
-            }
+            onChange={(event) => {
+              const file = event.target.files?.[0] ?? null;
+              setFileName(file?.name ?? null);
+              if (file) {
+                track("resume_uploaded", {
+                  location: "ats_checker",
+                  file_type: file.name.split(".").pop()?.toLowerCase() ?? "unknown",
+                  size_kb: Math.round(file.size / 1024),
+                });
+              }
+            }}
           />
         </div>
 
@@ -214,7 +225,7 @@ function Result({
             {result.missing.map((term) => (
               <span
                 key={term}
-                className="rounded border border-coral-hi/20 bg-coral-hi/10 px-2 py-0.5 font-mono text-xs text-coral-hi"
+                className="max-w-full wrap-anywhere rounded border border-coral-hi/20 bg-coral-hi/10 px-2 py-0.5 font-mono text-xs text-coral-hi"
               >
                 {term}
               </span>
@@ -232,7 +243,7 @@ function Result({
             {result.matched.map((term) => (
               <span
                 key={term}
-                className="rounded border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary"
+                className="max-w-full wrap-anywhere rounded border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary"
               >
                 {term}
               </span>
@@ -242,6 +253,79 @@ function Result({
       ) : null}
 
       <EmailCapture coverage={result.coverage} />
+
+      <ShareScore
+        coverage={result.coverage}
+        matched={result.matched.length}
+        missing={result.missing.length}
+      />
+    </div>
+  );
+}
+
+/**
+ * The share card: a link back to the checker carrying only the three numbers
+ * (?s=&m=&x=); the page's OG image renders them as a score card when the
+ * link unfurls. Native share where available, clipboard everywhere else.
+ */
+function ShareScore({
+  coverage,
+  matched,
+  missing,
+}: {
+  coverage: number;
+  matched: number;
+  missing: number;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function share() {
+    const url = `${window.location.origin}/tools/ats-checker?s=${coverage}&m=${matched}&x=${missing}`;
+    const payload = {
+      title: "My keyword match score",
+      text: `I scored ${coverage}/100 matching my resume to a job. Check yours free:`,
+      url,
+    };
+
+    let method = "clipboard";
+    if (navigator.share) {
+      try {
+        await navigator.share(payload);
+        method = "native";
+      } catch {
+        // User dismissed the sheet: not a share, not an error.
+        return;
+      }
+    } else {
+      await navigator.clipboard.writeText(`${payload.text} ${url}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+    track("share_card_clicked", { coverage, method });
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-container-low p-3">
+      <p className="text-xs leading-5 text-on-surface-variant">
+        Share your score. The link shows only the numbers, never your resume.
+      </p>
+      <button
+        type="button"
+        onClick={share}
+        className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-on-surface transition-all hover:border-primary hover:text-primary"
+      >
+        {copied ? (
+          <>
+            <Check className="size-3.5" />
+            Link copied
+          </>
+        ) : (
+          <>
+            <Share2 className="size-3.5" />
+            Share my score
+          </>
+        )}
+      </button>
     </div>
   );
 }
@@ -279,8 +363,8 @@ function EmailCapture({ coverage }: { coverage: number }) {
   return (
     <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
       <p className="text-sm text-on-surface">
-        This checks keyword coverage. The full ATS score — structure,
-        formatting and semantic match — plus one-click tailoring and export
+        This checks keyword coverage. The full match score (structure,
+        formatting and semantic match) plus one-click tailoring and export
         come with a free account.
       </p>
       <form onSubmit={submit} className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -311,7 +395,7 @@ function EmailCapture({ coverage }: { coverage: number }) {
       </form>
       {error ? <p className="mt-2 text-xs text-destructive">{error}</p> : null}
       <p className="mt-2 text-xs text-on-surface-variant">
-        We save your email only — never your resume or the job text.{" "}
+        We save your email only, never your resume or the job text.{" "}
         <Link
           href="/sign-up"
           className="underline underline-offset-2 hover:text-on-surface"

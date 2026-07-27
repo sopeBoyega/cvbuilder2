@@ -2,6 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { and, desc, eq, isNull } from "drizzle-orm";
 
+import { isPro } from "@/lib/billing/entitlements";
+import { DOCX_PRO_MESSAGE } from "@/lib/billing/limits";
 import { db } from "@/lib/db";
 import { profiles, resumeVersions, resumes } from "@/lib/db/schema";
 import { renderResumeDocx } from "@/lib/documents/docx";
@@ -44,6 +46,12 @@ export async function GET(
     .limit(1);
   if (!profile) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // DOCX is a Pro entitlement (/pricing); PDF stays free. The UI hides this
+  // path for free users — the check here is the actual enforcement.
+  if (!(await isPro(profile.id))) {
+    return NextResponse.json({ error: DOCX_PRO_MESSAGE }, { status: 403 });
   }
 
   // Scope by profile so one user can never export another's resume.

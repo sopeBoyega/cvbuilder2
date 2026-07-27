@@ -76,7 +76,7 @@ export function EditStep() {
           Editing{" "}
           <span className="text-on-surface">{context.resumeTitle}</span> for{" "}
           <span className="text-on-surface">{context.jobTitle}</span>. Saving
-          creates a tailored version — your original stays untouched.
+          creates a tailored version; your original stays untouched.
         </p>
       </header>
 

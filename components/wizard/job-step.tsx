@@ -107,8 +107,8 @@ export function JobStep() {
           Where are you heading?
         </h1>
         <p className="text-base leading-6 text-on-surface-variant">
-          Paste the job description. We map the keywords an ATS scans for, as
-          you type.
+          Paste the job description. We map the keywords recruiters search
+          for, as you type.
         </p>
       </header>
 

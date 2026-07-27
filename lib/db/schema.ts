@@ -23,6 +23,12 @@ export const profiles = pgTable("profiles", {
   clerkUserId: text("clerk_user_id").notNull().unique(),
   email: text("email").notNull(),
   name: text("name"),
+  /** One-line professional headline, e.g. "Frontend engineer · React/TS". */
+  headline: text("headline"),
+  /** Roles the user is targeting (string[] as jsonb; Zod-validated app-side). */
+  targetRoles: jsonb("target_roles").notNull().default([]),
+  /** Industries the user is targeting (string[] as jsonb). */
+  targetIndustries: jsonb("target_industries").notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -165,6 +171,8 @@ export const applications = pgTable("applications", {
   status: text("status").notNull().default("saved"),
   /** Free-text "what's my next move" reminder shown on the card. */
   nextAction: text("next_action"),
+  /** Longer scratchpad on the detail page: interview questions, contacts, research. */
+  notes: text("notes"),
   /** Manual ordering within a column, low-to-high. */
   position: integer("position").notNull().default(0),
   appliedAt: timestamp("applied_at", { withTimezone: true }),
@@ -212,6 +220,119 @@ export const subscriptions = pgTable("subscriptions", {
     .defaultNow()
     .notNull(),
 });
+
+/**
+ * An AI-drafted cover letter for a (job, resume) pair. `content` is the full
+ * letter text — editable after generation, so it's the user's document, not a
+ * cached AI response. Tone/length are the generation knobs, stored so
+ * "Regenerate" can reuse them (validated by Zod enums in `lib/validation/ai.ts`).
+ */
+export const coverLetters = pgTable("cover_letters", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  profileId: uuid("profile_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  jobId: uuid("job_id")
+    .references(() => jobs.id, { onDelete: "cascade" })
+    .notNull(),
+  resumeId: uuid("resume_id")
+    .references(() => resumes.id, { onDelete: "cascade" })
+    .notNull(),
+  /** "professional" | "warm" | "direct". */
+  tone: text("tone").notNull().default("professional"),
+  /** "short" | "medium" | "detailed". */
+  length: text("length").notNull().default("medium"),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+/**
+ * The AI-generated interview question set for a tracked application. One row
+ * per application (unique) — regenerating replaces the set. `questions` is
+ * validated against `InterviewQuestions` in `lib/validation/ai.ts` on write
+ * and re-parsed on read (same jsonb pattern as `resume_versions.content`).
+ */
+export const interviewPreps = pgTable("interview_preps", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  applicationId: uuid("application_id")
+    .references(() => applications.id, { onDelete: "cascade" })
+    .notNull()
+    .unique(),
+  questions: jsonb("questions").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+/**
+ * A support message from the in-app form. The DB row is the source of truth
+ * (never lose a message); a copy is emailed to the contact inbox when
+ * RESEND_API_KEY is configured (see `lib/actions/support.ts`).
+ */
+export const supportRequests = pgTable("support_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  /** Null if the profile is later deleted; the message keeps its email copy. */
+  profileId: uuid("profile_id").references(() => profiles.id, {
+    onDelete: "set null",
+  }),
+  email: text("email").notNull(),
+  /** "bug" | "billing" | "feature" | "other" (Zod-validated app-side). */
+  topic: text("topic").notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+/**
+ * A cached external job listing (Discover feed). Unlike `jobs` (private,
+ * one row per user per pasted description), this is a shared catalog:
+ * fetched periodically from JSearch (`lib/jobs/ingest.ts`), embedded once,
+ * and ranked per-user at read time against their base resume — so ranking
+ * is a cheap in-memory cosine comparison, not a re-fetch or re-embed.
+ */
+export const jobListings = pgTable(
+  "job_listings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    /** Provider name, e.g. "jsearch" — future-proofs a second source. */
+    source: text("source").notNull(),
+    /** The provider's own job id, for dedup across ingestion runs. */
+    externalId: text("external_id").notNull(),
+    title: text("title").notNull(),
+    company: text("company"),
+    location: text("location"),
+    remote: boolean("remote").default(false).notNull(),
+    description: text("description").notNull(),
+    url: text("url").notNull(),
+    /** Free-text as the provider reports it, e.g. "$90K - $120K". */
+    salary: text("salary"),
+    postedAt: timestamp("posted_at", { withTimezone: true }),
+    /** Null until the ingestion embedding step succeeds. */
+    embedding: vector("embedding", { dimensions: EMBEDDING_DIMENSIONS }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    /** Bumped on every ingestion sweep that still finds this listing live. */
+    fetchedAt: timestamp("fetched_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("job_listings_source_external_id_idx").on(
+      table.source,
+      table.externalId,
+    ),
+  ],
+);
 
 /**
  * A marketing lead captured pre-signup (top of the funnel, e.g. on the free

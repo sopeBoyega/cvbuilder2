@@ -6,10 +6,12 @@ import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { draftAnswer } from "@/lib/ai/draft-answer";
+import { friendlyAiError } from "@/lib/ai/error-message";
 import { safeEmbed } from "@/lib/ai/embeddings";
 import { generateGapQuestions } from "@/lib/ai/gap-questions";
 import { MODEL_IDS } from "@/lib/ai/models";
 import { assertWithinQuota, logGeneration } from "@/lib/ai/usage";
+import { assertCanTailor } from "@/lib/billing/entitlements";
 import {
   analyzeResume,
   extractJobKeywords,
@@ -38,7 +40,8 @@ import { ResumeContent } from "@/lib/validation/resume";
  * Tailoring always starts here, never from a variant produced for another job,
  * otherwise each pass would compound the last job's keyword stuffing.
  */
-async function baseVersionOf(resumeId: string) {
+/** Also used by Discover feed ranking (lib/actions/discover.ts). */
+export async function baseVersionOf(resumeId: string) {
   const [version] = await db
     .select()
     .from(resumeVersions)
@@ -83,8 +86,11 @@ async function ensureJobEmbedding(
   return embedding;
 }
 
-/** Resume-version embedding, computed and cached on first use. */
-async function ensureVersionEmbedding(
+/**
+ * Resume-version embedding, computed and cached on first use. Also used by
+ * Discover feed ranking (lib/actions/discover.ts).
+ */
+export async function ensureVersionEmbedding(
   profileId: string,
   version: typeof resumeVersions.$inferSelect,
   content: ResumeContent,
@@ -358,10 +364,10 @@ export async function requestGapQuestions(
   } catch (error) {
     return {
       ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "We couldn't generate questions. Continue to the editor instead.",
+      error: friendlyAiError(
+        error,
+        "We couldn't generate questions. Continue to the editor instead.",
+      ),
     };
   }
 }
@@ -439,10 +445,10 @@ export async function draftGapAnswer(
   } catch (error) {
     return {
       ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "We couldn't draft an answer. Write one yourself instead.",
+      error: friendlyAiError(
+        error,
+        "We couldn't draft an answer. Write one yourself instead.",
+      ),
     };
   }
 }
@@ -547,6 +553,17 @@ export async function saveTailoredResume(
     .where(and(eq(resumes.id, resumeId), eq(resumes.profileId, profile.id)))
     .limit(1);
   if (!resume) return { ok: false, error: "That resume could not be found." };
+
+  // Free-tier monthly cap — checked before any AI spend.
+  try {
+    await assertCanTailor(profile.id);
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error ? error.message : "You've hit the free limit.",
+    };
+  }
 
   // This tailored draft is a brand-new version, so embed its content directly
   // rather than via `ensureVersionEmbedding` (there's no row yet), and store the

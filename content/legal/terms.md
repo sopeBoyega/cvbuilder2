@@ -85,7 +85,7 @@ You may cancel a recurring subscription at any time through your account setting
 
 **Your ownership.** You retain all ownership rights in the resumes, job descriptions, personal information, and other materials you upload to or create within the Services ('Your Content'). We do not claim ownership of Your Content.
 
-**License to us.** By submitting Your Content, you grant us a worldwide, non-exclusive, royalty-free license to host, store, reproduce, process, and transmit Your Content solely for the purpose of operating and providing the Services to you — including sending relevant portions of Your Content to our AI service providers to generate outputs you request (see Section 6). This license ends when Your Content is deleted from our systems, except to the extent it has been shared with others or retained as required by law.
+**License to us.** By submitting Your Content, you grant us a worldwide, non-exclusive, royalty-free license to host, store, reproduce, process, and transmit Your Content solely for the purpose of operating and providing the Services to you, including sending relevant portions of Your Content to our AI service providers to generate outputs you request (see Section 6). This license ends when Your Content is deleted from our systems, except to the extent it has been shared with others or retained as required by law.
 
 **Your responsibility.** You represent and warrant that you own or have the necessary rights to Your Content, and that Your Content, and our use of it as permitted here, does not violate these Terms or any applicable law or third-party right.
 
@@ -126,7 +126,7 @@ We may investigate and take appropriate legal action against anyone who violates
 
 ## 8. INTELLECTUAL PROPERTY RIGHTS
 
-Other than Your Content, the Services and all of their contents, features, and functionality — including software, text, designs, graphics, the design system, the 'constellation' visual elements, logos, and our ATS scoring and analysis logic — are owned by us or our licensors and are protected by intellectual property laws.
+Other than Your Content, the Services and all of their contents, features, and functionality (including software, text, designs, graphics, the design system, the 'constellation' visual elements, logos, and our ATS scoring and analysis logic) are owned by us or our licensors and are protected by intellectual property laws.
 
 Subject to these Terms, we grant you a limited, non-exclusive, non-transferable, revocable license to access and use the Services for your personal, non-commercial job-search purposes. AI Output generated for you may be used by you for your own job applications and related purposes.
 

@@ -69,3 +69,10 @@ export const UpdateNextActionInput = z.object({
   nextAction: z.string().trim().max(280),
 });
 export type UpdateNextActionInput = z.infer<typeof UpdateNextActionInput>;
+
+/** Edit the long-form notes scratchpad on the application detail page. */
+export const UpdateNotesInput = z.object({
+  applicationId: z.uuid(),
+  notes: z.string().trim().max(10_000),
+});
+export type UpdateNotesInput = z.infer<typeof UpdateNotesInput>;

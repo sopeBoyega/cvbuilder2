@@ -16,6 +16,7 @@ import {
   CreateApplicationInput,
   MoveApplicationInput,
   UpdateNextActionInput,
+  UpdateNotesInput,
 } from "@/lib/validation/application";
 
 async function requireProfileId(): Promise<string | null> {
@@ -169,6 +170,36 @@ export async function updateApplicationNextAction(
   }
 
   revalidatePath("/applications");
+  return { ok: true };
+}
+
+/** Saves the long-form notes on the detail page. */
+export async function updateApplicationNotes(
+  input: unknown,
+): Promise<SimpleActionState> {
+  const profileId = await requireProfileId();
+  if (!profileId) return { ok: false, error: "You need to be signed in." };
+
+  const parsed = UpdateNotesInput.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid notes." };
+  const { applicationId, notes } = parsed.data;
+
+  const updated = await db
+    .update(applications)
+    .set({ notes: notes || null, updatedAt: sql`now()` })
+    .where(
+      and(
+        eq(applications.id, applicationId),
+        eq(applications.profileId, profileId),
+      ),
+    )
+    .returning({ id: applications.id });
+
+  if (updated.length === 0) {
+    return { ok: false, error: "That application could not be found." };
+  }
+
+  revalidatePath(`/applications/${applicationId}`);
   return { ok: true };
 }
 

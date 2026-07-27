@@ -106,9 +106,228 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
       `NEXT_PUBLIC_POSTHOG_KEY` (+ optional `NEXT_PUBLIC_POSTHOG_HOST`) in
       `.env.local` and Vercel** — until then events are dropped by design.
     - `BRAND.promise` updated to the provisional §4B line (About page shows it).
-  - NOT STARTED: cover letter generator, interview prep, insights/analytics,
-    Job Search Pass + Lifetime one-time purchases, final landing copy
-    (messaging house), §7 privacy corrections.
+  - DONE (2026-07-13): **free-tier enforcement** — the /pricing promises are now
+    real code: `assertCanTailor` (3 tailored resumes/calendar month for free,
+    `lib/billing/entitlements.ts`, enforced in `saveTailoredResume` with an
+    `UpgradePrompt` in the editor via `lib/billing/limits.ts` matchers) and the
+    DOCX route now 403s for free users (locked "DOCX · Pro" button in
+    `ExportControl`, `isPro` threaded from server pages incl. the wizard).
+  - DONE (2026-07-13): **cover letter generator** (Pro) — `cover_letters` table
+    (migration `0008`, applied), `lib/ai/cover-letter.ts` (generateText,
+    tone/length knobs, grounded-in-resume rules), actions in
+    `lib/actions/cover-letters.ts` (generate/regenerate/save, Pro-gated,
+    quota-logged as kind `cover_letter`), editor page `/cover-letters/[id]`
+    (paper-sheet textarea + tone/length + regenerate, per the owner's Stitch
+    design), entry = "Draft a cover letter" on the wizard finalize step
+    (UpgradePrompt for free users).
+  - DONE (2026-07-13): **interview prep** (Pro) — `interview_preps` table (one
+    set per application, upsert on regenerate), `lib/ai/interview-prep.ts`
+    (generateObject → `InterviewQuestions`: behavioral/technical/role +
+    coaching rationale), action `generateInterviewPrep` (Pro-gated, kind
+    `interview_prep`), page `/interview-prep/[applicationId]` (grouped
+    expandable cards per the Stitch design), entry = prep icon on each kanban
+    card. Owner's design pack: `C:\Users\User1\Downloads\
+    stitch_constellation_resume_system` (application detail, deep scan,
+    insights, settings etc. still unbuilt — next phase).
+  - DONE (2026-07-13): **application detail hub** (`/applications/[id]`, per
+    the Stitch design) — header w/ inline status select (reuses
+    `moveApplication`), deterministic keyword analysis of the attached version
+    vs the job (same `lib/ats` engine), expandable job description (+ original
+    posting link), assets panel (resume w/ score ring, cover letters for the
+    job), honest journey timeline (recorded moments only), and a notes
+    scratchpad (`applications.notes`, migration `0009` applied; saves on blur
+    via `updateApplicationNotes`). Kanban card titles now link to it; route
+    `loading.tsx` added.
+  - DONE (2026-07-13): **insights page** (`/insights`, per the Stitch design,
+    honest-data version) — server-computed aggregates only: stat tiles
+    (response rate, interview rate, avg ATS score across variants, apps sent
+    + this month), application funnel (saved → applied → interview → offer,
+    stage-to-stage %, counts derived from current board columns), latest
+    tailored scores as single-hue labeled bars. Skipped the mockup's "AI
+    Insight" correlation card and trend deltas — no history snapshots exist to
+    compute them, and we don't fabricate. Full EmptyState when the tracker is
+    empty; route `loading.tsx` added. (Stage-accent palette was run through
+    the dataviz validator; identity is carried by row labels, not color.)
+  - DONE (2026-07-14): **settings profile page** (per the Stitch design) —
+    `profiles` columns `headline` / `target_roles` / `target_industries`
+    (migration `0010`, applied), `updateProfile` action (name/email stay
+    Clerk-owned and read-only), chip-editor form, and the onboarding step-2
+    form now actually saves target role/industry (was fully decorative).
+    Typecheck + lint verified.
+  - DONE (2026-07-14): **landing page re-skinned onto the owner's
+    "Professional Identity Hub" design concept** — resurrected the original
+    window/mobile-frame preview components + constellation thread/nodes from
+    git history (`5c0589e`) and poured the repositioned copy into them: same
+    hero wording + checker-first CTAs, stance section, three FeatureSections
+    retitled to the trust pillars (job-specific / ATS-safe / transparent) with
+    wizard-step previews (job → upload → score ring), proof placeholder,
+    pricing strip, trust line, final CTA. The concept's fabricated stats
+    (50% faster / 92% success / 85%) were replaced with real product facts
+    ("3 steps", "2 formats", "4 signals"). Footer newsletter is a real
+    capture: `leads` source enum extended with "newsletter", wired to
+    `captureLead` + PostHog `email_captured`. All CTA tracking retained.
+  - DONE (2026-07-14): **settings reworked into one screen with sub-tabs**
+    (per the Stitch settings designs) — shared `app/(app)/settings/layout.tsx`
+    (header + `SettingsNav` tab rail: Profile / Billing / Integrations /
+    Notifications; vertical on desktop, scrollable pills on mobile), each
+    sub-page now content-only, `/settings` redirects to `/settings/profile`,
+    loading skeletons updated to content-only. The design's "Account" tab was
+    skipped (Clerk owns it) and "Targeting" lives inside Profile. Integrations
+    stays an honest EmptyState naming the planned connections (LinkedIn sync,
+    Drive export, Chrome capture) — the design's "Connected" states are not
+    faked. Verified: typecheck, lint, 70/70 tests. `pnpm build` currently
+    fails ONLY on next/font Google-font downloads over the owner's flaky
+    connection (bounced 16→3 errors across retries; same build passed earlier
+    today; Vercel unaffected). If it keeps biting locally, self-hosting the
+    three fonts as local .woff2 would remove the build-time network dependency.
+  - DONE (2026-07-14): **shell + mobile polish from owner's device testing** —
+    (1) desktop sidebar collapses to logo-only (localStorage-persisted via
+    `useSyncExternalStore`, same hydration pattern as the wizard store);
+    (2) mobile bottom tabs now render from the SAME `APP_NAV` list as the
+    sidebar (they had drifted: Home/Tailor/Vault/Profile vs the sidebar's
+    Home/Resumes/Templates/Jobs/Analytics); (3) long unbroken strings no
+    longer overflow: keyword chips (application detail, editor, checker,
+    questions step), job-description body, and job title all use Tailwind v4
+    `wrap-anywhere`; ExportControl and the resume-detail toolbar wrap on
+    narrow screens; (4) raw Gemini errors ("Failed after 3 attempts.
+    AI_APICallError... gemini-2.5-flash") no longer reach the UI —
+    `lib/ai/error-message.ts::friendlyAiError` maps provider quota/rate-limit
+    noise to one honest sentence and is applied in all AI-backed action
+    catches (cover letters, interview prep, gap questions, draft answers).
+    NOTE: that error revealed the GEMINI FREE TIER's 20-req/day cap on
+    2.5-flash is a real production ceiling — paid Gemini tier (or a smaller
+    default model) is now a launch consideration.
+  - DONE (2026-07-14): **resume card actions + support page** —
+    (1) the library card's dead three-dot menu now works: Rename (dialog,
+    `renameResume`) and Delete (confirm dialog spelling out the cascade,
+    `deleteResume`; DB cascades cover versions/analyses/letters, application
+    cards survive with a nulled resume ref); (2) the hardcoded "Main master
+    template" subtitle now shows the resume's actual export template name and
+    follows the user's template pick; (3) `/support` page (sidebar Support
+    links there): form → `support_requests` table (migration `0011`, applied;
+    DB row is source of truth) + best-effort email relay to
+    `BRAND.contactEmail` via Resend's REST API **gated on `RESEND_API_KEY`**
+    (unset = DB-only; owner must add the key + eventually a verified sender
+    domain), works signed-out, prefills the profile email, plus six honest
+    FAQs. Verified: typecheck, lint, 70/70 tests.
+  - DONE (2026-07-14): **claims audit** (owner adopted The Tech Resume's
+    "ATS Myths Busted" stance; hard copy rules now in `docs/rebranding.md`
+    §5) — removed every unsubstantiated auto-rejection/screening claim:
+    structure flag ("Most ATS reject…" → recruiter framing), landing hero
+    ("screened by software" → recruiter's 20-second read), checker headline
+    + metadata (recruiter-search framing, "not a robot verdict"), about page
+    ("quietly filters out the rest" → search/skim/parse reality), and the
+    retired "Beat the bots" slogan that was STILL LIVE on the sign-up page
+    (now `BRAND.promise`). Hero ring relabeled "Match score"; landing +
+    support FAQ now define the score as our relevance/parseability
+    diagnostic, not an ATS's number nor an interview prediction. Parsing
+    claims (ATS-safe exports) deliberately retained — they're the defensible
+    ones. Owner's split (2026-07-14): ALL marketing/conversion surfaces say
+    "match score" (landing, pricing, checker, about); in-app labels keep
+    "ATS Score" as shorthand next to the visible breakdown.
+  - DONE (2026-07-14): **funnel events expanded + proof section fixed** —
+    new PostHog events `checker_page_viewed` (referrer + UTM props, fired via
+    `TrackPageEvent` on the checker page) and `resume_uploaded`
+    (file_type/size_kb/location; checker + onboarding); `checker_used` now
+    carries `duration_ms`. Owner's event plan mapped onto existing names
+    where funnels already use them (`checker_used` ≈ score_generated,
+    `email_captured` ≈ waitlist_email_submitted); parse_preview /
+    email_confirmed / share_card events skipped — those surfaces don't exist.
+    The proof section's "tell us your jump" was a mailto: link (silently dead
+    without a mail client — the "testimonials not working" bug); now an
+    inline form (`TestimonialCta`) writing to `support_requests` with topic
+    "testimonial" (accepted by the Zod enum, not shown in the support
+    dropdown) + Resend relay when configured.
+  - DONE (2026-07-14): **share card (viral loop on the guest checker)** —
+    results panel gets "Share my score": native share sheet on mobile,
+    clipboard fallback on desktop, `share_card_clicked` event
+    ({coverage, method}). The shared URL carries ONLY the three numbers
+    (`/tools/ats-checker?s=72&m=9&x=4`, never resume/job text) and unfurls as
+    a generated score-card PNG via `/api/og/checker` (ImageResponse; params
+    clamped; graceful "?" with no params — rendered + eyeballed, on-brand).
+    Checker page: `generateMetadata` sets the OG image + share title for
+    shared links, and arrivals see a "someone shared a X/100" banner above
+    the tool. `metadataBase` added to root layout (uses NEXT_PUBLIC_APP_URL).
+    GOTCHA for future OG work: Satori requires explicit `display: flex` on
+    EVERY div with >1 child; missing it surfaces only as a generic "failed to
+    pipe response" — the real cause is in the [cause] of the server log.
+  - DONE (2026-07-16): **about page rewritten for the stance** — states the
+    anti-fear-mongering position outright ("The pitch we refuse to make":
+    what recruiting software actually does, knockout questions as the real
+    automation), the three commitments (job-specific / ATS-safe with
+    testable parsing claims / transparent diagnostic score with explicit
+    "not a number any ATS assigns, doesn't predict interviews"), names the
+    early-career-tech ICP while welcoming others, and a "What we won't do"
+    list (no invented numbers, no gamed scores, no data hoarding). Complies
+    with rebranding.md §5 hard copy rules; links to /support (confirmed
+    guest-reachable — not in proxy.ts protected prefixes).
+  - DONE (2026-07-16), **ENV KEYS NEEDED BEFORE IT DOES ANYTHING**: **Discover
+    feed** — a new job-matching surface, not from a Stitch design (built
+    directly from the existing design system). Ranks external job listings
+    against the user's base resume by semantic similarity, reusing the
+    existing embeddings/cosine engine rather than adding a new one.
+    - `job_listings` table (migration `0012`, applied): a *shared* cache,
+      unlike the private per-user `jobs` table. Unique on (source,
+      external_id) for dedup across ingestion runs.
+    - `lib/jobs/jsearch.ts`: typed JSearch (RapidAPI) client — aggregates
+      Google for Jobs (LinkedIn/Indeed/Glassdoor) without touching any of
+      those APIs directly (Indeed's is closed to new publishers, LinkedIn has
+      none). Tolerant Zod parsing since it's a third-party shape.
+    - `lib/jobs/ingest.ts`: sweeps a curated 8-query set tuned to the locked
+      early-career-tech ICP (see `docs/rebranding.md`), upserts, embeds only
+      listings still missing one (new + previously-failed). Never throws —
+      one bad query or embed is recorded in `errors` and the sweep continues.
+    - `GET /api/cron/jobs`: refreshes the cache, gated on `CRON_SECRET`
+      (refuses to run at all if unset — never runs open). `vercel.json` cron
+      entry fires it once daily (`0 4 * * *`) — **owner confirmed Hobby plan
+      2026-07-16**, which caps cron at once/day with imprecise (±59min)
+      timing; do not change this to a sub-daily schedule without confirming
+      a Pro-plan upgrade first, or the deploy will fail outright.
+    - `/discover` (new sidebar + mobile nav item, Compass icon): ranks the
+      cached pool (embedded, <14 days old) against the user's most-recently-
+      updated base resume's embedding (computed via the same
+      `ensureVersionEmbedding` tailor.ts already uses — exported, not
+      duplicated), +5 display-score boost when a title matches a
+      `target_roles` entry. "Tailor my resume to this" reuses `createJob`
+      verbatim (copies the listing into the user's own private `jobs` row)
+      then seeds the wizard client-side and jumps to `/tailor/resume` — no
+      new mutation action needed. Honest empty states: no base resume yet,
+      cache still warming up (no embedded listings), nothing ranked this
+      round.
+    - **Owner action required**: set `JSEARCH_API_KEY` (RapidAPI) and
+      `CRON_SECRET` in Vercel env, or the feed stays empty forever (ingestion
+      throws `JSearchUnavailableError` and the cron route 503s without the
+      secret). Also add the cron secret to the Vercel Cron Jobs UI/env so its
+      request header matches.
+    - Verified: typecheck, lint, 70/70 tests. **Production build NOT verified
+      this session** — `next/font` failed to resolve `fonts.googleapis.com`
+      from this sandbox (DNS flake unrelated to this feature; general
+      internet connectivity confirmed fine). Run `pnpm build` once to confirm
+      before deploying.
+  - DONE (2026-07-16): **pagination** — new `components/ui/pager.tsx`
+    (Prev/Next + "Page X of Y", no page-number buttons since these lists run
+    tens of pages, not hundreds). Wired into the two real unbounded lists in
+    the app:
+    - **Resume Library**: 6/page (2 cols × 3 rows), paginating the
+      already-filtered/sorted array client-side (search still covers the
+      full dataset — only the *rendering* is paginated); page resets on
+      search/sort change, clamps on delete rather than needing an effect;
+      "New Professional Base" tile stays outside pagination, always visible.
+    - **Discover feed**: page.tsx's ranked cutoff raised from top 30 to top
+      60 (a quality floor, not a page size — below a threshold, more results
+      are just noise); `DiscoverFeed` paginates that array 10/page
+      client-side.
+    - Kanban board (`/applications`) deliberately NOT paginated — pagination
+      breaks drag-and-drop across columns; skipped, not missed. Insights'
+      "Latest tailored scores" and the dashboard's "recent resumes" are
+      intentionally-capped preview widgets (with a "View All" escape hatch),
+      not tables, so left alone.
+    - Verified: typecheck, lint, 70/70 tests. Build not reverified this pass
+      — same `fonts.googleapis.com` DNS flake as the Discover feature above,
+      confirmed unrelated (recurs on a totally different diff); run
+      `pnpm build` once before deploying.
+  - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
+    (messaging house), §7 privacy corrections, ATS deep scan design.
 
 ## 4. Architecture map
 
@@ -221,9 +440,8 @@ Once Pro is confirmed active, `isPro()` gates the AI quota
 
 ## 7. Known issues / TODO backlog
 
-- **[billing] Revert the ₦1,000 test price → ₦25,000** (`lib/billing/pricing.ts`)
-  and point `PAYSTACK_PLAN_PRO_NGN` at the real plan — payments are verified,
-  this is the last billing loose end.
+- ~~[billing] test price revert~~ DONE 2026-07-13: real ₦25,000 price + plan
+  live and owner-verified.
 - **AI paths never verified against the live API by the assistant** (no key in
   sandbox, can't drive a browser). `safeEmbed` logs failures (a NaN-token insert
   bug in `ai_generations` was fixed). Owner should do one real end-to-end run:
@@ -235,14 +453,16 @@ Once Pro is confirmed active, `isPro()` gates the AI quota
   exists, unused).
 - **Editor** can't edit education/projects/certifications yet (preserved on save).
 - **Stripe** webhook route is a stub; Stripe is named in legal docs but Paystack
-  is the active processor. Contact email in docs/brand: `support@cvbuilder.digital`.
-- **PostHog needs its key**: code is wired (`lib/analytics.ts`), but
-  `NEXT_PUBLIC_POSTHOG_KEY` must be set in `.env.local` + Vercel or the funnel
-  still measures nothing.
-- **[rebrand] Pricing page over-claims Pro**: the Pro tier lists "Cover letters
-  & interview prep" (`app/(marketing)/pricing/page.tsx`) but neither is built.
-  Owner decision: pull the bullets or mark "coming soon" — a paid tier's
-  promises shouldn't be edited silently by the assistant.
+  is the active processor. Contact email in docs/brand: `contact.cvbuilder@gmail.com`.
+- ~~PostHog key~~ DONE 2026-07-13: key set in env + Vercel, events verified
+  arriving; owner built the funnel insight in PostHog.
+- ~~[pricing] unreal Pro bullets~~ RESOLVED 2026-07-13: "Priority processing"
+  and "all templates" removed from /pricing at owner's direction; every
+  remaining Pro bullet is enforced in code ("Cover letters & interview prep"
+  built + Pro-gated same day).
+- ~~cover letter / interview prep live test~~ DONE 2026-07-13: owner verified
+  both flows end-to-end against the live Gemini API, and the free-tier gates
+  (monthly tailor cap UpgradePrompt, locked DOCX button) behave as designed.
 - **[rebrand] Privacy corrections for counsel** (`docs/rebranding.md` §7 + new
   findings): categories table all "NO", blanket "no sensitive info", AI
   providers listed as Anthropic/Google/OpenAI (reality: Gemini only), Meta

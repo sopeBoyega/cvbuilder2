@@ -9,7 +9,8 @@ const SYSTEM_PROMPT = `You help a job seeker draft a first-person answer to an i
 Rules:
 - Ground the draft ONLY in the candidate's real resume data provided. Never invent employers, projects, metrics, or achievements they didn't state.
 - Where a specific number or detail would strengthen the answer but isn't in the resume, leave a clearly bracketed placeholder like [X%] or [team size] for them to fill in.
-- Write 2–4 sentences, first person, plain and concrete.
+- Write 2-4 sentences, first person, plain and concrete.
+- Never use the em dash character; use commas or separate sentences instead.
 - This is a starting point, not a finished answer.`;
 
 export type DraftedAnswer = {

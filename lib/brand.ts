@@ -17,7 +17,7 @@ export const BRAND = {
    * Replaced the retired "Beat the bots. Land the interview."
    */
   promise:
-    "A tailored, ATS-safe resume for every job — without gaming yourself into rejection.",
+    "A tailored, ATS-safe resume for every job, without gaming yourself into rejection.",
   description:
     "Tailor your resume to a job description, check your ATS score, and prepare stronger applications.",
   /** Contact inbox used across the site and legal docs. */

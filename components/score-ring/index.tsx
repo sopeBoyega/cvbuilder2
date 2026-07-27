@@ -55,7 +55,7 @@ export function ScoreRing({ score, size = 64, className }: ScoreRingProps) {
         ) : null}
       </svg>
       <span className={cn("absolute font-mono text-sm", accent)}>
-        {scored ? score : "—"}
+        {scored ? score : "n/a"}
       </span>
     </div>
   );

@@ -83,7 +83,7 @@ export async function renderResumeDocx(content: ResumeContent): Promise<Buffer> 
     children.push(section("Certifications"));
     for (const cert of content.certifications) {
       children.push(
-        bullet([cert.name, cert.issuer, cert.year].filter(Boolean).join(" — ")),
+        bullet([cert.name, cert.issuer, cert.year].filter(Boolean).join(" · ")),
       );
     }
   }

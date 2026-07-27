@@ -79,7 +79,7 @@ function WorkBlock({ entry, style }: { entry: WorkEntry; style: Styles }) {
         <Text style={style.dates}>{formatRange(entry.start, entry.end)}</Text>
       </View>
       <Text style={style.company}>
-        {[entry.company, entry.location].filter(Boolean).join(" — ")}
+        {[entry.company, entry.location].filter(Boolean).join(" · ")}
       </Text>
       <Bullets bullets={entry.bullets} style={style} />
     </View>
@@ -140,7 +140,7 @@ export function ExecutiveModern({ content }: { content: ResumeContent }) {
                 <Text>
                   <Text style={executive.role}>{entry.school}</Text>
                   {entry.degree || entry.field
-                    ? ` — ${[entry.degree, entry.field].filter(Boolean).join(", ")}`
+                    ? ` · ${[entry.degree, entry.field].filter(Boolean).join(", ")}`
                     : ""}
                 </Text>
                 <Text style={executive.dates}>
@@ -163,7 +163,7 @@ export function ExecutiveModern({ content }: { content: ResumeContent }) {
             <Text style={executive.sectionTitle}>CERTIFICATIONS</Text>
             {content.certifications.map((cert, index) => (
               <Text key={index}>
-                {[cert.name, cert.issuer, cert.year].filter(Boolean).join(" — ")}
+                {[cert.name, cert.issuer, cert.year].filter(Boolean).join(" · ")}
               </Text>
             ))}
           </View>
@@ -231,7 +231,7 @@ export function GlobalStandard({ content }: { content: ResumeContent }) {
                 <Text>
                   <Text style={classic.role}>{entry.school}</Text>
                   {entry.degree || entry.field
-                    ? ` — ${[entry.degree, entry.field].filter(Boolean).join(", ")}`
+                    ? ` · ${[entry.degree, entry.field].filter(Boolean).join(", ")}`
                     : ""}
                 </Text>
                 <Text style={classic.dates}>
@@ -267,7 +267,7 @@ export function GlobalStandard({ content }: { content: ResumeContent }) {
             <Text style={classic.sectionTitle}>CERTIFICATIONS</Text>
             {content.certifications.map((cert, index) => (
               <Text key={index}>
-                {[cert.name, cert.issuer, cert.year].filter(Boolean).join(" — ")}
+                {[cert.name, cert.issuer, cert.year].filter(Boolean).join(" · ")}
               </Text>
             ))}
           </View>
@@ -357,7 +357,7 @@ export function TechVanguard({ content }: { content: ResumeContent }) {
                 <Text>
                   <Text style={vanguard.role}>{entry.school}</Text>
                   {entry.degree || entry.field
-                    ? ` — ${[entry.degree, entry.field].filter(Boolean).join(", ")}`
+                    ? ` · ${[entry.degree, entry.field].filter(Boolean).join(", ")}`
                     : ""}
                 </Text>
                 <Text style={vanguard.dates}>
@@ -373,7 +373,7 @@ export function TechVanguard({ content }: { content: ResumeContent }) {
             <Text style={vanguard.sectionTitle}>CERTIFICATIONS</Text>
             {content.certifications.map((cert, index) => (
               <Text key={index}>
-                {[cert.name, cert.issuer, cert.year].filter(Boolean).join(" — ")}
+                {[cert.name, cert.issuer, cert.year].filter(Boolean).join(" · ")}
               </Text>
             ))}
           </View>
