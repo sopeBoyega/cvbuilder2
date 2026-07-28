@@ -8,6 +8,14 @@ export const MAX_KEYWORDS = 25;
 /** A bigram must recur to count, unless it's a known skill ("machine learning"). */
 const MIN_BIGRAM_FREQUENCY = 2;
 
+/**
+ * An unknown unigram must recur too. A real skill the taxonomy doesn't know
+ * gets repeated in any serious JD; a word that appears once is page scrap
+ * ("argentina", "select", "greenhouse") — exactly what leaked into coverage
+ * when the From-URL import landed page chrome in descriptions.
+ */
+const MIN_UNIGRAM_FREQUENCY = 2;
+
 const PURE_NUMBER = /^[0-9.]+$/;
 
 export type Keyword = {
@@ -55,7 +63,9 @@ export function extractJobKeywords(
   }
 
   for (const [term, frequency] of unigrams) {
-    candidates.push({ term, known: isKnownSkill(term), weight: frequency });
+    const known = isKnownSkill(term);
+    if (!known && frequency < MIN_UNIGRAM_FREQUENCY) continue;
+    candidates.push({ term, known, weight: frequency });
   }
 
   /*

@@ -12,6 +12,16 @@ import { env } from "@/lib/env";
 
 const JSEARCH_HOST = "jsearch.p.rapidapi.com";
 
+/** Markets we ingest, as JSearch `country` ISO-2 codes. */
+export type JobMarket = "ng" | "us";
+
+/**
+ * The product's primary market (ICP is Nigerian early-career tech; US is
+ * secondary — see docs/rebranding.md). Drives both which listings we fetch
+ * most of and which tier the Discover feed shows first.
+ */
+export const PRIMARY_JOB_MARKET: JobMarket = "ng";
+
 export class JSearchUnavailableError extends Error {
   constructor(message = "JSEARCH_API_KEY is not configured.") {
     super(message);
@@ -89,7 +99,12 @@ function normalize(job: z.infer<typeof JSearchJob>): NormalizedListing | null {
  */
 export async function searchJobs(
   query: string,
-  options: { remoteOnly?: boolean; datePosted?: "today" | "3days" | "week" } = {},
+  options: {
+    remoteOnly?: boolean;
+    datePosted?: "today" | "3days" | "week";
+    /** JSearch defaults to "us" when omitted — always pass it explicitly. */
+    country?: JobMarket;
+  } = {},
 ): Promise<NormalizedListing[]> {
   if (!env.JSEARCH_API_KEY) throw new JSearchUnavailableError();
 
@@ -98,6 +113,7 @@ export async function searchJobs(
     page: "1",
     num_pages: "1",
     date_posted: options.datePosted ?? "week",
+    country: options.country ?? "us",
   });
   if (options.remoteOnly) params.set("remote_jobs_only", "true");
 
