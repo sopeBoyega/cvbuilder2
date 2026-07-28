@@ -8,6 +8,7 @@ import { useSignUp } from "@clerk/nextjs/legacy";
 
 import { Logo } from "@/components/shell/logo";
 import { BRAND } from "@/lib/brand";
+import { SOCIAL_AUTH_ENABLED } from "@/lib/features";
 import { GoogleIcon, LinkedInIcon } from "@/components/auth/oauth-icons";
 import { PasswordField } from "@/components/auth/password-field";
 
@@ -169,39 +170,43 @@ export default function SignUpPage() {
                   </p>
                 </div>
 
-                <div className="mb-6 flex flex-col gap-3">
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => handleOAuth("oauth_linkedin_oidc")}
-                    className="group relative flex w-full cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-[8px] border border-primary/40 bg-primary/10 px-4 py-3 text-on-surface transition-all hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <span className="absolute inset-0 bg-primary/5 opacity-0 transition-opacity group-hover:opacity-100" />
-                    <LinkedInIcon className="size-5 text-[#0A66C2]" />
-                    <span className="relative z-10 text-base font-medium leading-6">
-                      Continue with LinkedIn
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => handleOAuth("oauth_google")}
-                    className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-[8px] border border-border bg-surface-raised px-4 py-3 text-on-surface transition-all hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <GoogleIcon className="size-5" />
-                    <span className="text-base font-medium leading-6">
-                      Continue with Google
-                    </span>
-                  </button>
-                </div>
+                {SOCIAL_AUTH_ENABLED ? (
+                  <>
+                    <div className="mb-6 flex flex-col gap-3">
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => handleOAuth("oauth_linkedin_oidc")}
+                        className="group relative flex w-full cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-[8px] border border-primary/40 bg-primary/10 px-4 py-3 text-on-surface transition-all hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <span className="absolute inset-0 bg-primary/5 opacity-0 transition-opacity group-hover:opacity-100" />
+                        <LinkedInIcon className="size-5 text-[#0A66C2]" />
+                        <span className="relative z-10 text-base font-medium leading-6">
+                          Continue with LinkedIn
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => handleOAuth("oauth_google")}
+                        className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-[8px] border border-border bg-surface-raised px-4 py-3 text-on-surface transition-all hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <GoogleIcon className="size-5" />
+                        <span className="text-base font-medium leading-6">
+                          Continue with Google
+                        </span>
+                      </button>
+                    </div>
 
-                <div className="mb-6 flex items-center">
-                  <div className="h-px flex-grow bg-border" />
-                  <span className="mx-4 shrink-0 font-mono text-xs font-medium uppercase leading-[1.15] tracking-widest text-on-surface-variant">
-                    or
-                  </span>
-                  <div className="h-px flex-grow bg-border" />
-                </div>
+                    <div className="mb-6 flex items-center">
+                      <div className="h-px flex-grow bg-border" />
+                      <span className="mx-4 shrink-0 font-mono text-xs font-medium uppercase leading-[1.15] tracking-widest text-on-surface-variant">
+                        or
+                      </span>
+                      <div className="h-px flex-grow bg-border" />
+                    </div>
+                  </>
+                ) : null}
 
                 <form className="flex flex-col gap-4" onSubmit={handleCreate}>
                   <div>

@@ -419,6 +419,31 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
       remote query surfaces some aggregator spam ("reputed company…") —
       ranking buries most of it; a quality filter is future work if it
       bothers users.
+  - DONE (2026-07-28): **social login parked behind a flag so Clerk can go
+    to production.** Everything else is production-grade (domain, Paystack,
+    Gemini billing, Discover) — the ONE blocker was Clerk still running as a
+    **development instance** (confirmed: OAuth redirects went to
+    `clerk.shared.lcl.dev`, Clerk's shared dev callback). A Clerk production
+    instance needs your OWN Google/LinkedIn credentials, and Google Cloud
+    verification was blocking the owner.
+    - `lib/features.ts::SOCIAL_AUTH_ENABLED = false` hides the Google/
+      LinkedIn buttons + their divider on both auth pages. Email + password
+      (already built and working) needs zero Google Cloud involvement.
+    - Nothing deleted: `handleOAuth`, `/sso-callback`, and the icon
+      components stay wired. Flip the flag to `true` once the credentials
+      are in Clerk's SSO connections.
+    - **Do NOT onboard real users on the dev instance**: dev and production
+      are separate user databases, so users do NOT migrate. Our `profiles`
+      rows key on `clerkUserId` and `subscriptions` hang off `profileId` —
+      a paying user created on dev would end up an orphaned profile with an
+      unlinked Paystack subscription. Dev instances are also user-capped
+      (~100).
+    - FYI for when social login returns: the app only requests `openid` /
+      `userinfo.email` / `userinfo.profile` — all **non-sensitive** scopes,
+      which do NOT require Google's full verification review (that applies
+      to sensitive/restricted scopes). If verification is blocking, check
+      it's not a consent-screen branding issue instead.
+    - Verified: typecheck, lint, 84/84 tests.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections, ATS deep scan design.
 
