@@ -310,6 +310,8 @@ export const jobListings = pgTable(
     title: text("title").notNull(),
     company: text("company"),
     location: text("location"),
+    /** ISO-2 country the ingestion search targeted ("ng", "us"). */
+    market: text("market").default("us").notNull(),
     remote: boolean("remote").default(false).notNull(),
     description: text("description").notNull(),
     url: text("url").notNull(),

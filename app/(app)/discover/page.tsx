@@ -8,6 +8,7 @@ import { baseVersionOf, ensureVersionEmbedding } from "@/lib/actions/tailor";
 import { cosineSimilarity } from "@/lib/ats/semantic";
 import { db } from "@/lib/db";
 import { jobListings, profiles, resumes } from "@/lib/db/schema";
+import { PRIMARY_JOB_MARKET } from "@/lib/jobs/jsearch";
 import { timeAgo } from "@/lib/utils";
 import type { DiscoverListingView } from "@/lib/validation/discover";
 import { TagList } from "@/lib/validation/profile";
@@ -74,21 +75,31 @@ export default async function DiscoverPage() {
       );
 
       return {
-        id: listing.id,
-        title: listing.title,
-        company: listing.company,
-        location: listing.location,
-        remote: listing.remote,
-        description: listing.description,
-        url: listing.url,
-        salary: listing.salary,
-        postedLabel: listing.postedAt ? timeAgo(listing.postedAt) : null,
-        matchScore,
-        matchesTargetRole,
+        // Tier 0: reachable from the primary market (local listings, or
+        // remote roles hirable from anywhere). Tier 1: onsite abroad — still
+        // shown (US is the secondary market), but never above reachable work.
+        tier:
+          listing.market === PRIMARY_JOB_MARKET || listing.remote ? 0 : 1,
+        view: {
+          id: listing.id,
+          title: listing.title,
+          company: listing.company,
+          location: listing.location,
+          remote: listing.remote,
+          description: listing.description,
+          url: listing.url,
+          salary: listing.salary,
+          postedLabel: listing.postedAt ? timeAgo(listing.postedAt) : null,
+          matchScore,
+          matchesTargetRole,
+        },
       };
     })
-    .sort((a, b) => b.matchScore - a.matchScore)
-    .slice(0, FEED_SIZE);
+    .sort(
+      (a, b) => a.tier - b.tier || b.view.matchScore - a.view.matchScore,
+    )
+    .slice(0, FEED_SIZE)
+    .map((ranked) => ranked.view);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 md:p-8">

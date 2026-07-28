@@ -3,7 +3,11 @@ import { eq } from "drizzle-orm";
 import { embedText } from "@/lib/ai/embeddings";
 import { db } from "@/lib/db";
 import { EMBEDDING_DIMENSIONS, jobListings } from "@/lib/db/schema";
-import { JSearchUnavailableError, searchJobs } from "@/lib/jobs/jsearch";
+import {
+  JSearchUnavailableError,
+  type JobMarket,
+  searchJobs,
+} from "@/lib/jobs/jsearch";
 
 /**
  * Curated query set for the early-career-tech ICP (see docs/rebranding.md).
@@ -11,16 +15,30 @@ import { JSearchUnavailableError, searchJobs } from "@/lib/jobs/jsearch";
  * feed is ranked against, so it stays broad rather than chasing one person's
  * target roles. Each query costs one JSearch call per ingestion sweep — keep
  * this list short enough that a paid tier's monthly quota isn't a surprise.
+ *
+ * Nigeria is the primary market (most queries, local phrasing — "graduate
+ * trainee" is the NG term for what US postings call "new grad"); the US set
+ * is the secondary tier. Remote-only queries catch anywhere-hires.
  */
-const DISCOVER_QUERIES: { query: string; remoteOnly?: boolean }[] = [
-  { query: "junior software engineer" },
-  { query: "software engineer new grad" },
-  { query: "junior frontend developer" },
-  { query: "junior backend developer" },
-  { query: "junior full stack developer" },
-  { query: "entry level data analyst" },
-  { query: "QA engineer entry level" },
-  { query: "remote junior developer", remoteOnly: true },
+const DISCOVER_QUERIES: {
+  query: string;
+  market: JobMarket;
+  remoteOnly?: boolean;
+}[] = [
+  // Primary: Nigeria
+  { query: "junior software engineer", market: "ng" },
+  { query: "graduate trainee software developer", market: "ng" },
+  { query: "entry level software developer", market: "ng" },
+  { query: "junior frontend developer", market: "ng" },
+  { query: "junior backend developer", market: "ng" },
+  { query: "entry level data analyst", market: "ng" },
+  { query: "remote junior developer", market: "ng", remoteOnly: true },
+  // Secondary: US
+  { query: "junior software engineer", market: "us" },
+  { query: "software engineer new grad", market: "us" },
+  { query: "entry level data analyst", market: "us" },
+  { query: "junior frontend developer", market: "us" },
+  { query: "remote junior developer", market: "us", remoteOnly: true },
 ];
 
 /** Gemini's embedding input is generous; a job description rarely needs more. */
@@ -49,18 +67,22 @@ export async function ingestJobListings(): Promise<IngestSummary> {
     errors: [],
   };
 
-  for (const { query, remoteOnly } of DISCOVER_QUERIES) {
+  for (const { query, market, remoteOnly } of DISCOVER_QUERIES) {
     summary.queried++;
     let results;
     try {
-      results = await searchJobs(query, { remoteOnly, datePosted: "week" });
+      results = await searchJobs(query, {
+        remoteOnly,
+        datePosted: "week",
+        country: market,
+      });
     } catch (error) {
       if (error instanceof JSearchUnavailableError) {
         summary.errors.push(error.message);
         break; // No key: every remaining query will fail the same way.
       }
       summary.errors.push(
-        `"${query}": ${error instanceof Error ? error.message : String(error)}`,
+        `"${query}" (${market}): ${error instanceof Error ? error.message : String(error)}`,
       );
       continue;
     }
@@ -75,6 +97,7 @@ export async function ingestJobListings(): Promise<IngestSummary> {
             title: listing.title,
             company: listing.company,
             location: listing.location,
+            market,
             remote: listing.remote,
             description: listing.description,
             url: listing.url,
@@ -87,6 +110,7 @@ export async function ingestJobListings(): Promise<IngestSummary> {
               title: listing.title,
               company: listing.company,
               location: listing.location,
+              market,
               remote: listing.remote,
               description: listing.description,
               url: listing.url,

@@ -400,6 +400,25 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     fixing that needs case-aware or context-aware matching, deferred. Jobs
     imported BEFORE this fix keep their noisy saved descriptions;
     re-importing the job cleans them.
+  - DONE (2026-07-28): **Discover is Nigeria-first** — the feed was all-US
+    because JSearch's `country` param was never sent (defaults to "us").
+    Owner's call: NG is the primary market, US secondary.
+    - `searchJobs` now always passes `country`; `JobMarket`/
+      `PRIMARY_JOB_MARKET` ("ng") exported from `lib/jobs/jsearch.ts`.
+    - Query plan (`lib/jobs/ingest.ts`): 7 NG queries (local phrasing —
+      "graduate trainee", not "new grad") + 5 US = **12 calls/sweep, 48/day
+      at the every-6h cron** (was 32/day) — check the JSearch plan quota.
+    - `job_listings.market` column (migration `0013`, applied; existing rows
+      correctly default to 'us').
+    - Feed ranking is tiered: tier 0 = NG listings OR remote-anywhere
+      (reachable from the primary market), tier 1 = onsite abroad; semantic
+      score orders within tiers. US onsite still shows, just never above
+      reachable work.
+    - Verified: typecheck, lint, 84/84 tests; live sweep upserted+embedded
+      67 (37 NG-market rows in Neon, e.g. Tezza, Lagos). KNOWN: the NG
+      remote query surfaces some aggregator spam ("reputed company…") —
+      ranking buries most of it; a quality filter is future work if it
+      bothers users.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections, ATS deep scan design.
 
