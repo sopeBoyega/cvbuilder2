@@ -382,6 +382,24 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
       (tailor.ts). 8 new parser tests (`tests/jobs/scrape.test.ts`).
     - Verified: typecheck, lint, 78/78 tests. Build still not verifiable in
       this sandbox (fonts.googleapis.com DNS) — Vercel builds are unaffected.
+  - DONE (2026-07-28): **keyword-coverage precision fix** — owner's live
+    analysis after a From-URL import showed junk keywords ("argentina",
+    "personal data", "select", "greenhouse"): page chrome (location fields,
+    EEO questionnaire, application form) was landing in descriptions AND the
+    extractor let any unknown word rank from one occurrence. Three-part fix:
+    (1) `trimJobBoilerplate` in `lib/jobs/scrape.ts` cuts trailing form/legal
+    chrome (markers only count in the back half; falls back to the original
+    if trimming leaves <200 chars), applied to both JSON-LD and fallback
+    paths; (2) unknown *unigrams* now need frequency ≥2 in
+    `lib/ats/keywords.ts` (bigrams already did; taxonomy skills still rank
+    from one mention); (3) EEO/application-form vocabulary added to
+    `lib/ats/stopwords.ts` ("employment", "personal", "select", "gender",
+    "veteran", …) — kills "personal data" while keeping "data". 84/84 tests.
+    KNOWN REMAINING: ambiguous taxonomy terms ("go" the verb vs Go the
+    language, "hiring" in EEO text when not trimmed) can still surface —
+    fixing that needs case-aware or context-aware matching, deferred. Jobs
+    imported BEFORE this fix keep their noisy saved descriptions;
+    re-importing the job cleans them.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections, ATS deep scan design.
 

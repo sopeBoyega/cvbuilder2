@@ -187,6 +187,48 @@ function extractJsonLdJobPosting(html: string): JobPostingLd | null {
 }
 
 /* ------------------------------------------------------------------ */
+/* Boilerplate trim                                                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Section markers that reliably start the *tail* of a posting page: the
+ * application form, EEO questionnaire, and legal notices. Everything from the
+ * first such marker onward is chrome, not job description.
+ */
+const TRAILING_BOILERPLATE_MARKERS: RegExp[] = [
+  /apply for this (job|position|role)/gi,
+  /equal (employment )?opportunity/gi,
+  /e-?verify/gi,
+  /voluntary self-?identification/gi,
+  /how did you hear about/gi,
+  /privacy (notice|policy)/gi,
+  /reasonable accommodation/gi,
+  /background checks?/gi,
+  /powered by\s+\w+/gi, // "Powered by Greenhouse/Lever/…"
+  /autofill with resume/gi,
+  /(first|last) name\s*[*✱]?\s*$/gim, // application-form field labels
+];
+
+/**
+ * Drop trailing form/legal chrome. Only matches in the back half of the text
+ * count as "trailing" — a JD that leads with a values/EEO statement isn't
+ * gutted — and if trimming leaves too little, the original is kept (better a
+ * noisy description than a destroyed one).
+ */
+export function trimJobBoilerplate(text: string): string {
+  const floor = Math.floor(text.length / 2);
+  let cut = text.length;
+  for (const marker of TRAILING_BOILERPLATE_MARKERS) {
+    for (const match of text.matchAll(marker)) {
+      if (match.index >= floor && match.index < cut) cut = match.index;
+    }
+  }
+  if (cut === text.length) return text;
+  const trimmed = text.slice(0, cut).trim();
+  return trimmed.length >= MIN_EXTRACTED_CHARS ? trimmed : text;
+}
+
+/* ------------------------------------------------------------------ */
 /* Main                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -198,7 +240,8 @@ export function parseJobPostingHtml(html: string): ScrapedJobPosting {
     if (text.length >= MIN_EXTRACTED_CHARS) {
       const org = ld.hiringOrganization;
       return {
-        text,
+        // JSON-LD descriptions still carry EEO/privacy tails on most boards.
+        text: trimJobBoilerplate(text),
         title: ld.title?.trim() || null,
         company:
           (typeof org === "string" ? org : org?.name)?.trim() || null,
@@ -219,7 +262,7 @@ export function parseJobPostingHtml(html: string): ScrapedJobPosting {
       `We couldn't find a job description on that page — it may load its content with JavaScript. ${PASTE_INSTEAD}`,
     );
   }
-  return { text, title: null, company: null };
+  return { text: trimJobBoilerplate(text), title: null, company: null };
 }
 
 export async function fetchJobPostingFromUrl(

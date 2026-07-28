@@ -5,6 +5,7 @@ import {
   ScrapeError,
   htmlToText,
   parseJobPostingHtml,
+  trimJobBoilerplate,
 } from "@/lib/jobs/scrape";
 
 const LONG_DESCRIPTION_HTML = `
@@ -108,6 +109,22 @@ describe("parseJobPostingHtml", () => {
     ).toThrow(ScrapeError);
   });
 
+  it("cuts trailing EEO/application-form chrome from descriptions", () => {
+    const html = jsonLdPage({
+      "@type": "JobPosting",
+      title: "Junior Frontend Engineer",
+      description: `${LONG_DESCRIPTION_HTML}
+        <p>We are an Equal Opportunity Employer. All employment decisions are
+        made without regard to race, gender, or veteran status.</p>
+        <p>Apply for this job</p><p>First Name * Last Name * Select…</p>`,
+    });
+
+    const result = parseJobPostingHtml(html);
+    expect(result.text).toContain("React & TypeScript");
+    expect(result.text).not.toContain("Equal Opportunity");
+    expect(result.text).not.toContain("First Name");
+  });
+
   it("survives a malformed JSON-LD block and uses the next one", () => {
     const html = `<html><head>
       <script type="application/ld+json">{not json</script>
@@ -119,5 +136,29 @@ describe("parseJobPostingHtml", () => {
     </head><body></body></html>`;
 
     expect(parseJobPostingHtml(html).title).toBe("Data Analyst");
+  });
+});
+
+describe("trimJobBoilerplate", () => {
+  const body = "Real responsibilities and requirements. ".repeat(20);
+
+  it("cuts from the first trailing marker onward", () => {
+    const text = `${body}Equal Opportunity Employer statement. Privacy Notice: we process personal data.`;
+    const trimmed = trimJobBoilerplate(text);
+    expect(trimmed).not.toContain("Equal Opportunity");
+    expect(trimmed).not.toContain("Privacy Notice");
+    expect(trimmed).toContain("Real responsibilities");
+  });
+
+  it("ignores markers in the front half (values-led postings)", () => {
+    const text = `As an equal opportunity employer we hire broadly. ${body}`;
+    expect(trimJobBoilerplate(text)).toBe(text);
+  });
+
+  it("keeps the original when trimming would leave too little", () => {
+    const short = "Short intro. ".repeat(8); // just over the marker floor
+    const text = `${short}Apply for this job now with your details please and thank you.`;
+    // Cutting here would drop below the minimum; the original survives.
+    expect(trimJobBoilerplate(text)).toBe(text);
   });
 });

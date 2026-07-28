@@ -45,6 +45,14 @@ export const STOPWORDS: ReadonlySet<string> = new Set([
   "diversity", "inclusive", "environment", "culture", "office", "remote",
   "hybrid", "full", "time", "part", "us", "role", "want", "wants", "need",
   "needs", "able", "you'll", "we're",
+
+  // EEO / application-form vocabulary. Present even in hand-pasted JDs, and
+  // heavily so in From-URL imports; none of it is a skill an ATS keys on.
+  // ("personal" here also kills the "personal data" bigram from privacy
+  // notices — "data" itself stays a valid signal.)
+  "employment", "personal", "information", "select", "status", "gender",
+  "veteran", "disability", "accommodation", "accommodations", "sponsorship",
+  "authorized", "authorization", "eligibility", "eligible", "identification",
 ]);
 
 export function isStopword(token: string): boolean {

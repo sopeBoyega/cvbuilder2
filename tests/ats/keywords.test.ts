@@ -143,6 +143,41 @@ describe("extractJobKeywords", () => {
     expect(terms).not.toContain("learning");
   });
 
+  it("requires unknown unigrams to recur (page-scrap regression)", () => {
+    // "greenhouse"/"argentina"-style one-off scraps from a scraped page must
+    // not rank; a repeated unknown term is real signal and still does.
+    const jd = `Build dashboards with widgetify. Ship widgetify integrations.
+      Our office is in Argentina. Experience with React required.`;
+    const terms = extractJobKeywords(jd).map((k) => k.term);
+
+    expect(terms).toContain("widgetify"); // unknown, appears twice
+    expect(terms).toContain("react"); // known, once is enough
+    expect(terms).not.toContain("argentina"); // unknown, appears once
+  });
+
+  it("treats EEO/application-form vocabulary as stopwords", () => {
+    const jd = `We process your personal data per our notice. Employment is
+      contingent on eligibility. Select your gender and veteran status below.
+      Personal information stays private. Employment authorization required.
+      Kubernetes experience required.`;
+    const terms = extractJobKeywords(jd).map((k) => k.term);
+
+    for (const noise of [
+      "personal",
+      "personal data",
+      "employment",
+      "select",
+      "gender",
+      "veteran",
+      "status",
+      "eligibility",
+      "information",
+    ]) {
+      expect(terms, `"${noise}" must not be a keyword`).not.toContain(noise);
+    }
+    expect(terms).toContain("kubernetes");
+  });
+
   it("is deterministic across runs", () => {
     const jd = "React, TypeScript, GraphQL, React, Docker, TypeScript.";
     expect(extractJobKeywords(jd)).toEqual(extractJobKeywords(jd));
