@@ -509,8 +509,39 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     unthrottled**; a boot warning logs when they're missing.
     NOT verified against a live Redis (no Upstash creds in this sandbox) —
     owner should confirm by hammering the guest checker >5x/min after deploy.
+  - DONE (2026-07-29): **ATS deep scan** (`/resumes/[id]/scan`, per the Stitch
+    `ats_deep_scan_cvbuilder` mock) — the last unbuilt screen in the design
+    pack. Deliberately **job-agnostic**: the wizard's analysis answers "does
+    this fit THIS job?", deep scan answers "does this survive being read by a
+    machine at all?". That split is why there's no keyword card here.
+    - **`lib/ats/extraction.ts` is the genuinely new engine work.** It's the
+      first consumer of `resume_versions.raw_text` (retained since Phase 1
+      precisely for this): it diffs the source document against the structured
+      `ResumeContent` to report extraction coverage + the specific source
+      lines that did NOT survive parsing. That's the honest version of the
+      mock's "bullet dropped" annotation — we can't detect layout/font
+      problems (no original PDF), but we CAN prove what the parser lost.
+      GOTCHA: it does NOT use `resumeToText`, which omits email/phone/links
+      because they aren't keywords — here they matter most, so it has its own
+      flattener. Coverage is a **diagnostic, never scored into the total**:
+      headings and page furniture legitimately don't survive, so a scored
+      version would punish normal resumes.
+    - `toExtractedGroups` + `components/resumes/parse-preview.tsx`: the
+      "parse preview" the content strategy names as the key differentiator —
+      a terminal-style panel of what the parser extracted, toggling to the
+      raw source text, with absent fields shown as a red `null` rather than
+      hidden.
+    - Score ring = `analyzeResume({ content })` with no job (structure +
+      formatting renormalized) — reuses the existing baseline, no second
+      scoring path. Structure/Formatting cards reuse the existing lints.
+    - Free, not Pro-gated (nothing on /pricing promises it, and "we show our
+      work" is the trust pillar). Entry: "Deep scan" button on the resume
+      detail toolbar. Honest footer names what it can't check.
+    - Verified: typecheck, lint, 93/93 tests (9 new). NOT visually checked in
+      a browser — owner should eyeball it against a real imported PDF, where
+      the dropped-lines panel actually has something to show.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
-    (messaging house), §7 privacy corrections, ATS deep scan design.
+    (messaging house), §7 privacy corrections.
 
 ## 4. Architecture map
 

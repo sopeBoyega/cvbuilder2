@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { and, desc, eq, isNull } from "drizzle-orm";
-import { ArrowLeft, Mail, MapPin, Phone, SquarePen } from "lucide-react";
+import { ArrowLeft, Mail, MapPin, Phone, ScanLine, SquarePen } from "lucide-react";
 
 import { isPro } from "@/lib/billing/entitlements";
 import { db } from "@/lib/db";
@@ -74,6 +74,16 @@ export default async function ResumeEditorPage({
               {version.source === "edit" ? "Edited" : `Parsed from ${version.source}`}
               {version.atsScore !== null ? ` · ATS ${version.atsScore}` : ""}
             </span>
+          ) : null}
+          {version ? (
+            <Link
+              href={`/resumes/${resume.id}/scan`}
+              title="See exactly what a parser extracts from this resume"
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-on-surface transition-all hover:border-primary hover:text-primary"
+            >
+              <ScanLine className="size-4" />
+              Deep scan
+            </Link>
           ) : null}
           <Link
             href={`/resumes/${resume.id}/edit`}
