@@ -68,6 +68,19 @@ export type NormalizedListing = {
   postedAt: Date | null;
 };
 
+/** Third-party URLs render as anchors — only ever store http(s) ones. */
+function httpUrlOrEmpty(url: string | null | undefined): string {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:"
+      ? url
+      : "";
+  } catch {
+    return "";
+  }
+}
+
 function normalize(job: z.infer<typeof JSearchJob>): NormalizedListing | null {
   // A listing with no real description can't be ranked or shown honestly.
   if (!job.job_description?.trim()) return null;
@@ -83,7 +96,7 @@ function normalize(job: z.infer<typeof JSearchJob>): NormalizedListing | null {
     location: location || null,
     remote: job.job_is_remote ?? false,
     description: job.job_description,
-    url: job.job_apply_link ?? "",
+    url: httpUrlOrEmpty(job.job_apply_link),
     salary: job.job_salary_string ?? null,
     postedAt: job.job_posted_at_datetime_utc
       ? new Date(job.job_posted_at_datetime_utc)

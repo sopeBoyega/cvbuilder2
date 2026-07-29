@@ -483,8 +483,65 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     → reply for explicit permission + preferred attribution → paste quote
     VERBATIM into the array (the section publicly promises "with
     permission, unedited"). Verified: typecheck, lint, 84/84 tests.
+  - DONE (2026-07-29): **security hardening pass** per `docs/security-review.md`
+    (checklist updated in that file — it is the source of truth). Landed: F1
+    IDOR ownership join (+ prod data scan, 0 bad rows), F3 input caps
+    (JD 20k, checker paste 50k, extracted text 100k, parse prompt 30k), F4
+    static security headers (CSP still open), F5 `user.deleted`/`user.updated`
+    webhook handling (**owner: subscribe both events in the Clerk production
+    webhook**), F6 Stripe stub fails closed (501), F7 error-message
+    allowlists, F8 default-deny `/api` in proxy.ts, and new F10: http(s)-only
+    URL validation + `safeHttpUrl` render guard (javascript:-href XSS).
+    STILL OPEN: CSP report-only rollout, CI audit/secret-scanning, F1
+    regression test. Verified: typecheck, lint (whole repo), 84/84 tests.
+  - DONE (2026-07-29): **F2 rate limiting — Upstash** (owner picked Upstash
+    over the Postgres fallback). `lib/rate-limit/index.ts` is now real:
+    `@upstash/ratelimit` sliding windows, one limiter per surface so a flood
+    of one kind can't starve another — checker 5/min/IP (the only anonymous
+    action), ai 10/min/profile, export 30/min/profile, scrape 10/min/profile.
+    Wired at: `checkAtsMatch`, `assertWithinQuota` (so it covers EVERY metered
+    AI call, Pro included — a runaway loop costs money at any tier), both
+    export routes (429), and `extractJobDescriptionFromUrl`. `RateLimitError`
+    is in the F7 allowlists + `friendlyAiError`, so its message reaches users
+    verbatim. **Fails open** on a Redis error and no-ops entirely when the env
+    vars are unset (dev/test friction-free) — which means **the owner MUST set
+    `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` in Vercel or prod is
+    unthrottled**; a boot warning logs when they're missing.
+    NOT verified against a live Redis (no Upstash creds in this sandbox) —
+    owner should confirm by hammering the guest checker >5x/min after deploy.
+  - DONE (2026-07-29): **ATS deep scan** (`/resumes/[id]/scan`, per the Stitch
+    `ats_deep_scan_cvbuilder` mock) — the last unbuilt screen in the design
+    pack. Deliberately **job-agnostic**: the wizard's analysis answers "does
+    this fit THIS job?", deep scan answers "does this survive being read by a
+    machine at all?". That split is why there's no keyword card here.
+    - **`lib/ats/extraction.ts` is the genuinely new engine work.** It's the
+      first consumer of `resume_versions.raw_text` (retained since Phase 1
+      precisely for this): it diffs the source document against the structured
+      `ResumeContent` to report extraction coverage + the specific source
+      lines that did NOT survive parsing. That's the honest version of the
+      mock's "bullet dropped" annotation — we can't detect layout/font
+      problems (no original PDF), but we CAN prove what the parser lost.
+      GOTCHA: it does NOT use `resumeToText`, which omits email/phone/links
+      because they aren't keywords — here they matter most, so it has its own
+      flattener. Coverage is a **diagnostic, never scored into the total**:
+      headings and page furniture legitimately don't survive, so a scored
+      version would punish normal resumes.
+    - `toExtractedGroups` + `components/resumes/parse-preview.tsx`: the
+      "parse preview" the content strategy names as the key differentiator —
+      a terminal-style panel of what the parser extracted, toggling to the
+      raw source text, with absent fields shown as a red `null` rather than
+      hidden.
+    - Score ring = `analyzeResume({ content })` with no job (structure +
+      formatting renormalized) — reuses the existing baseline, no second
+      scoring path. Structure/Formatting cards reuse the existing lints.
+    - Free, not Pro-gated (nothing on /pricing promises it, and "we show our
+      work" is the trust pillar). Entry: "Deep scan" button on the resume
+      detail toolbar. Honest footer names what it can't check.
+    - Verified: typecheck, lint, 93/93 tests (9 new). NOT visually checked in
+      a browser — owner should eyeball it against a real imported PDF, where
+      the dropped-lines panel actually has something to show.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
-    (messaging house), §7 privacy corrections, ATS deep scan design.
+    (messaging house), §7 privacy corrections.
 
 ## 4. Architecture map
 

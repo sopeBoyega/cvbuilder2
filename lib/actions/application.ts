@@ -11,6 +11,7 @@ import {
   jobs,
   profiles,
   resumeVersions,
+  resumes,
 } from "@/lib/db/schema";
 import {
   CreateApplicationInput,
@@ -65,12 +66,19 @@ export async function createApplication(
     .limit(1);
   if (!job) return { ok: false, error: "That job could not be found." };
 
-  // The resume version, if given, must belong to this profile too.
+  // The resume version, if given, must belong to this profile too — ownership
+  // enforced via the resumes join, never a bare-PK lookup (security review F1).
   if (resumeVersionId) {
     const [owned] = await db
       .select({ id: resumeVersions.id })
       .from(resumeVersions)
-      .where(eq(resumeVersions.id, resumeVersionId))
+      .innerJoin(resumes, eq(resumes.id, resumeVersions.resumeId))
+      .where(
+        and(
+          eq(resumeVersions.id, resumeVersionId),
+          eq(resumes.profileId, profileId),
+        ),
+      )
       .limit(1);
     if (!owned) {
       return { ok: false, error: "That resume version could not be found." };

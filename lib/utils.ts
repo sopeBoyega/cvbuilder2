@@ -22,3 +22,20 @@ export function timeAgo(date: Date): string {
   }
   return "just now"
 }
+
+/**
+ * Returns the URL only if it parses as http(s); otherwise null. Render guard
+ * for anchors whose href comes from users or third-party feeds — a stored
+ * `javascript:` URL must never become a clickable link.
+ */
+export function safeHttpUrl(url: string | null | undefined): string | null {
+  if (!url) return null
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === "https:" || parsed.protocol === "http:"
+      ? url
+      : null
+  } catch {
+    return null
+  }
+}

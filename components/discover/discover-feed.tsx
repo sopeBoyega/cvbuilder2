@@ -14,8 +14,9 @@ import {
 import { Pager } from "@/components/ui/pager";
 import { createJob } from "@/lib/actions/tailor";
 import { useWizard } from "@/lib/stores/wizard";
+import { MAX_JD_LENGTH } from "@/lib/validation/job";
 import type { DiscoverListingView } from "@/lib/validation/discover";
-import { cn } from "@/lib/utils";
+import { cn, safeHttpUrl } from "@/lib/utils";
 
 const DESCRIPTION_PREVIEW_CHARS = 260;
 const PAGE_SIZE = 10;
@@ -59,6 +60,7 @@ function ListingCard({ listing }: { listing: DiscoverListingView }) {
   const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startPending] = useTransition();
+  const postingUrl = safeHttpUrl(listing.url);
 
   const truncated = listing.description.length > DESCRIPTION_PREVIEW_CHARS;
   const shown =
@@ -74,8 +76,8 @@ function ListingCard({ listing }: { listing: DiscoverListingView }) {
       const result = await createJob({
         title: listing.title,
         company: listing.company ?? undefined,
-        description: listing.description,
-        url: listing.url || undefined,
+        description: listing.description.slice(0, MAX_JD_LENGTH),
+        url: safeHttpUrl(listing.url) ?? undefined,
       });
       if (!result.ok) {
         setError(result.error);
@@ -171,9 +173,9 @@ function ListingCard({ listing }: { listing: DiscoverListingView }) {
           )}
           Tailor my resume to this
         </button>
-        {listing.url ? (
+        {postingUrl ? (
           <a
-            href={listing.url}
+            href={postingUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 font-mono text-xs text-on-surface-variant transition-colors hover:text-primary"

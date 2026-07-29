@@ -28,6 +28,13 @@ const EnvSchema = z.object({
    * Optional at boot, required at point of use.
    */
   CRON_SECRET: z.string().min(1).optional(),
+  /**
+   * Upstash Redis (rate limiting, security review F2). Optional: without
+   * them `lib/rate-limit` passes every check (dev/tests). Set BOTH in Vercel
+   * or production runs unthrottled.
+   */
+  UPSTASH_REDIS_REST_URL: z.url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
   // Analytics (PostHog). Optional — lib/analytics.ts no-ops without the key.
   // Note: client code reads these via literal process.env.NEXT_PUBLIC_* refs
   // (this module is server-only); they're listed here for documentation and
@@ -48,6 +55,8 @@ export const env = EnvSchema.parse({
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   JSEARCH_API_KEY: process.env.JSEARCH_API_KEY,
   CRON_SECRET: process.env.CRON_SECRET,
+  UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+  UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
   NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
   NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
 });

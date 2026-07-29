@@ -8,15 +8,22 @@ import { z } from "zod";
 
 import { MODEL_IDS } from "@/lib/ai/models";
 import { structureResume } from "@/lib/ai/parse-resume";
-import { assertWithinQuota, logGeneration } from "@/lib/ai/usage";
+import {
+  QuotaExceededError,
+  assertWithinQuota,
+  logGeneration,
+} from "@/lib/ai/usage";
 import { analyzeResume } from "@/lib/ats";
 import { db } from "@/lib/db";
 import { profiles, resumeVersions, resumes } from "@/lib/db/schema";
 import {
+  EmptyDocumentError,
   MAX_FILE_BYTES,
+  UnsupportedFileError,
   extractTextFromFile,
 } from "@/lib/documents/extract-text";
 import { getTemplate } from "@/lib/documents/templates";
+import { RateLimitError } from "@/lib/rate-limit";
 import { ResumeContent } from "@/lib/validation/resume";
 
 const IMPORT_SOURCES = ["upload", "linkedin"] as const;
@@ -72,12 +79,18 @@ export async function importResume(
     rawText = await extractTextFromFile(file);
     ({ content, usage } = await structureResume(rawText));
   } catch (error) {
-    // Extraction / quota / structuring errors carry user-friendly messages.
+    // Only our own error classes carry user-facing messages (security review
+    // F7) — AI SDK / DB errors would leak provider internals to the browser.
+    const known =
+      error instanceof QuotaExceededError ||
+      error instanceof RateLimitError ||
+      error instanceof UnsupportedFileError ||
+      error instanceof EmptyDocumentError;
+    if (!known) console.error("[importResume] failed:", error);
     return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "We couldn't read that file. Try a different one.",
+      error: known
+        ? (error as Error).message
+        : "We couldn't read that file. Try a different one.",
     };
   }
 

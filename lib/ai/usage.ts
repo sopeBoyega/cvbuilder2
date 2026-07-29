@@ -4,6 +4,7 @@ import { QUOTA_ERROR_MESSAGE } from "@/lib/ai/quota";
 import { isPro } from "@/lib/billing/entitlements";
 import { db } from "@/lib/db";
 import { aiGenerations } from "@/lib/db/schema";
+import { assertRateLimit } from "@/lib/rate-limit";
 
 /** The AI operations we meter. */
 export type AiKind =
@@ -52,6 +53,12 @@ export async function usageInLastDay(profileId: string): Promise<number> {
  * Upstash atomic counter would buy later.
  */
 export async function assertWithinQuota(profileId: string): Promise<void> {
+  // Burst guard first, and for everyone: Pro removes the daily cap, not the
+  // per-minute flood limit (a runaway loop costs money at any tier). Throws
+  // RateLimitError; every caller's catch already surfaces its message
+  // (friendlyAiError / the F7 allowlists).
+  await assertRateLimit("ai", profileId);
+
   // Pro is unlimited — the daily cap only protects the free tier.
   if (await isPro(profileId)) return;
   if ((await usageInLastDay(profileId)) >= AI_DAILY_LIMIT) {

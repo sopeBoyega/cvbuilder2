@@ -1,4 +1,5 @@
 import { QuotaExceededError } from "@/lib/ai/usage";
+import { RateLimitError } from "@/lib/rate-limit";
 
 /**
  * Turns an AI-call failure into a message safe to show users. The AI SDK's
@@ -11,6 +12,7 @@ import { QuotaExceededError } from "@/lib/ai/usage";
 export function friendlyAiError(error: unknown, fallback: string): string {
   // Our own metering errors are already written for users.
   if (error instanceof QuotaExceededError) return error.message;
+  if (error instanceof RateLimitError) return error.message;
 
   const raw = error instanceof Error ? error.message : "";
   if (

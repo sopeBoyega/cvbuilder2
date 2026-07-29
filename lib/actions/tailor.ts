@@ -12,6 +12,7 @@ import { generateGapQuestions } from "@/lib/ai/gap-questions";
 import { MODEL_IDS } from "@/lib/ai/models";
 import { assertWithinQuota, logGeneration } from "@/lib/ai/usage";
 import { assertCanTailor } from "@/lib/billing/entitlements";
+import { isTailorLimitError } from "@/lib/billing/limits";
 import {
   analyzeResume,
   extractJobKeywords,
@@ -27,10 +28,13 @@ import {
   resumes,
 } from "@/lib/db/schema";
 import {
+  EmptyDocumentError,
   MAX_FILE_BYTES,
+  UnsupportedFileError,
   extractTextFromFile,
 } from "@/lib/documents/extract-text";
 import { ScrapeError, fetchJobPostingFromUrl } from "@/lib/jobs/scrape";
+import { RateLimitError, assertRateLimit } from "@/lib/rate-limit";
 import type { GapQuestion } from "@/lib/validation/ai";
 import { AtsAnalysis } from "@/lib/validation/ats";
 import { JobInput } from "@/lib/validation/job";
@@ -184,12 +188,16 @@ export async function extractJobDescriptionFromFile(
   try {
     return { ok: true, text: await extractTextFromFile(file) };
   } catch (error) {
+    // Only our own error classes reach the client verbatim (F7).
+    const known =
+      error instanceof UnsupportedFileError ||
+      error instanceof EmptyDocumentError;
+    if (!known) console.error("[extractJobDescriptionFromFile] failed:", error);
     return {
       ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "We couldn't read that file. Paste the text instead.",
+      error: known
+        ? error.message
+        : "We couldn't read that file. Paste the text instead.",
     };
   }
 }
@@ -216,15 +224,19 @@ export async function extractJobDescriptionFromUrl(
   }
 
   try {
+    // Each call is a server-side outbound fetch — burst-limited per user (F2).
+    await assertRateLimit("scrape", userId);
     const scraped = await fetchJobPostingFromUrl(parsed.data);
     return { ok: true, ...scraped };
   } catch (error) {
+    const known =
+      error instanceof ScrapeError || error instanceof RateLimitError;
+    if (!known) console.error("[extractJobDescriptionFromUrl] failed:", error);
     return {
       ok: false,
-      error:
-        error instanceof ScrapeError
-          ? error.message
-          : "We couldn't read that page. Paste the description instead.",
+      error: known
+        ? error.message
+        : "We couldn't read that page. Paste the description instead.",
     };
   }
 }
@@ -594,10 +606,14 @@ export async function saveTailoredResume(
   try {
     await assertCanTailor(profile.id);
   } catch (error) {
+    // The limit error's exact message doubles as the client-side matcher
+    // (isTailorLimitError); anything else stays server-side (F7).
+    const known =
+      error instanceof Error && isTailorLimitError(error.message);
+    if (!known) console.error("[saveTailoredResume] limit check failed:", error);
     return {
       ok: false,
-      error:
-        error instanceof Error ? error.message : "You've hit the free limit.",
+      error: known ? (error as Error).message : "You've hit the free limit.",
     };
   }
 
