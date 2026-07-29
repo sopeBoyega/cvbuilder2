@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  ArrowRight,
   Bot,
   Check,
   ChevronRight,
@@ -18,6 +19,8 @@ import {
 
 import { TestimonialCta } from "@/components/marketing/testimonial-cta";
 import { Logo } from "@/components/shell/logo";
+import { Reveal } from "@/components/ui/reveal";
+import { TESTIMONIALS } from "@/content/testimonials";
 import { captureLead } from "@/lib/actions/leads";
 import { track } from "@/lib/analytics";
 import { BRAND } from "@/lib/brand";
@@ -465,7 +468,7 @@ function FeatureSection({
           <ThreadNode accent={accent} />
           <div className={`absolute top-full h-full w-px opacity-30 ${accentClasses[accent].line}`} />
         </div>
-        <div className="grid items-start gap-16 lg:grid-cols-2">
+        <Reveal className="grid items-start gap-16 lg:grid-cols-2">
           <div className={`max-w-xl ${reverse ? "order-2 lg:order-1" : ""}`}>
             <h2 className="mb-6 flex items-center gap-4 font-heading text-3xl font-bold text-white md:text-5xl">
               <span className="md:hidden">
@@ -519,7 +522,7 @@ function FeatureSection({
           <div className={`relative ${reverse ? "order-1 lg:order-2" : ""}`}>
             {children}
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -757,7 +760,7 @@ export function LandingPage({
 
         {/* The stance */}
         <section className="relative z-10 px-6 pb-8 pt-24">
-          <div className="container mx-auto max-w-4xl text-center">
+          <Reveal className="container mx-auto max-w-4xl text-center">
             <h2 className="font-heading text-3xl font-bold leading-tight tracking-tight md:text-5xl">
               The ATS isn&apos;t out to get you.
               <br />
@@ -771,7 +774,7 @@ export function LandingPage({
               make the resume genuinely stronger for the specific job, keep it
               safe to parse, and show you exactly how the score is built.
             </p>
-          </div>
+          </Reveal>
         </section>
 
         <div className="h-20 md:h-24" />
@@ -828,29 +831,80 @@ export function LandingPage({
           <ScoreStepPreview />
         </FeatureSection>
 
-        {/* Proof: wired placeholder, deliberately no invented numbers */}
+        {/* Proof: real testimonials once curated, honest placeholder until then */}
         <section className="relative z-10 border-t border-[#242C3D] px-6 py-24">
-          <div className="container mx-auto max-w-4xl">
-            <div className="rounded-2xl border border-dashed border-[#242C3D] bg-[#161C2A]/60 p-10 text-center backdrop-blur-xl">
-              <span className="font-mono text-xs uppercase tracking-widest text-[#7C82F0]">
-                Proof, not promises
-              </span>
-              <h2 className="mt-3 font-heading text-2xl font-semibold text-white md:text-3xl">
-                Real score jumps will live here
-              </h2>
-              <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#9BA1A6]">
-                We don&apos;t invent testimonials. As beta users share their
-                before and after scores and interview results, they&apos;ll
-                appear in this space, with permission, unedited.
-              </p>
-              <TestimonialCta />
-            </div>
-          </div>
+          <Reveal className="container mx-auto max-w-5xl">
+            {TESTIMONIALS.length > 0 ? (
+              <div className="text-center">
+                <span className="font-mono text-xs uppercase tracking-widest text-[#7C82F0]">
+                  Proof, not promises
+                </span>
+                <h2 className="mt-3 font-heading text-2xl font-semibold text-white md:text-3xl">
+                  Real users, real score jumps
+                </h2>
+                <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#9BA1A6]">
+                  Shared with permission, published unedited.
+                </p>
+                <div
+                  className={cn(
+                    "mt-10 grid gap-6 text-left",
+                    TESTIMONIALS.length > 1 && "md:grid-cols-2",
+                    TESTIMONIALS.length > 2 && "lg:grid-cols-3",
+                  )}
+                >
+                  {TESTIMONIALS.map((testimonial) => (
+                    <figure
+                      key={testimonial.attribution + testimonial.quote.slice(0, 24)}
+                      className="flex flex-col rounded-2xl border border-[#242C3D] bg-[#161C2A]/60 p-6 backdrop-blur-xl"
+                    >
+                      {testimonial.scoreBefore !== undefined &&
+                      testimonial.scoreAfter !== undefined ? (
+                        <div className="mb-4 flex items-center gap-2 font-mono text-sm">
+                          <span className="text-[#9BA1A6]">
+                            {testimonial.scoreBefore}
+                          </span>
+                          <ArrowRight className="size-4 text-[#5BC06B]" />
+                          <span className="text-2xl font-bold text-[#5BC06B]">
+                            {testimonial.scoreAfter}
+                          </span>
+                          <span className="ml-1 text-xs uppercase tracking-wider text-[#9BA1A6]">
+                            match score
+                          </span>
+                        </div>
+                      ) : null}
+                      <blockquote className="flex-1 text-sm leading-6 text-[#E6E8EB]">
+                        &ldquo;{testimonial.quote}&rdquo;
+                      </blockquote>
+                      <figcaption className="mt-4 font-mono text-xs uppercase tracking-wider text-[#9BA1A6]">
+                        — {testimonial.attribution}
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+                <TestimonialCta />
+              </div>
+            ) : (
+              <div className="mx-auto max-w-4xl rounded-2xl border border-dashed border-[#242C3D] bg-[#161C2A]/60 p-10 text-center backdrop-blur-xl">
+                <span className="font-mono text-xs uppercase tracking-widest text-[#7C82F0]">
+                  Proof, not promises
+                </span>
+                <h2 className="mt-3 font-heading text-2xl font-semibold text-white md:text-3xl">
+                  Real score jumps will live here
+                </h2>
+                <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#9BA1A6]">
+                  We don&apos;t invent testimonials. As beta users share their
+                  before and after scores and interview results, they&apos;ll
+                  appear in this space, with permission, unedited.
+                </p>
+                <TestimonialCta />
+              </div>
+            )}
+          </Reveal>
         </section>
 
         {/* Pricing, plainly */}
         <section className="relative z-10 border-t border-[#242C3D] px-6 py-24">
-          <div className="container mx-auto max-w-7xl">
+          <Reveal className="container mx-auto max-w-7xl">
             <div className="mx-auto mb-16 max-w-2xl text-center">
               <h2 className="font-heading text-3xl font-bold leading-tight tracking-tight md:text-5xl">
                 Pricing with nothing hidden
@@ -950,12 +1004,12 @@ export function LandingPage({
                 </div>
               ))}
             </div>
-          </div>
+          </Reveal>
         </section>
 
         {/* Trust line */}
         <section className="relative z-10 border-t border-[#242C3D] px-6 py-16">
-          <div className="container mx-auto max-w-4xl">
+          <Reveal className="container mx-auto max-w-4xl">
             <div className="flex flex-col items-start gap-4 rounded-2xl border border-[#242C3D] bg-[#161C2A]/60 p-8 backdrop-blur-xl md:flex-row md:items-center">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-lg border border-[#7C82F0]/30 bg-[#7C82F0]/10">
                 <ShieldCheck className="size-6 text-[#7C82F0]" />
@@ -980,14 +1034,14 @@ export function LandingPage({
                 </p>
               </div>
             </div>
-          </div>
+          </Reveal>
         </section>
 
         {/* Final CTA */}
         <section className="relative z-10 overflow-hidden border-t border-[#242C3D] px-6 py-32">
           <div className="absolute inset-0 opacity-35 [background-image:radial-gradient(#E6E8EB_1px,transparent_1px)] [background-size:30px_30px]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(91,192,107,0.16),transparent_24%),radial-gradient(circle_at_45%_60%,rgba(124,130,240,0.14),transparent_28%)]" />
-          <div className="container relative z-10 mx-auto max-w-4xl text-center">
+          <Reveal className="container relative z-10 mx-auto max-w-4xl text-center">
             <h2 className="mb-6 font-heading text-4xl font-bold leading-tight text-white md:text-6xl">
               See where your resume stands. Free, in a minute.
             </h2>
@@ -1018,7 +1072,7 @@ export function LandingPage({
                 <ChevronRight className="h-4 w-4" />
               </GlassButton>
             </div>
-          </div>
+          </Reveal>
         </section>
       </main>
 

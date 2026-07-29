@@ -143,7 +143,7 @@ export function AnalysisStep() {
     <div className="space-y-10">
       {/* Hero score */}
       <div className="flex flex-col items-center gap-4 text-center">
-        <ScoreRing score={analysis.score} size={160} />
+        <ScoreRing score={analysis.score} size={160} animated />
         <div>
           <h1 className="font-heading text-[30px] font-bold text-on-surface md:text-[40px]">
             Analysis complete

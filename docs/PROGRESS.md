@@ -444,6 +444,45 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
       to sensitive/restricted scopes). If verification is blocking, check
       it's not a consent-screen branding issue instead.
     - Verified: typecheck, lint, 84/84 tests.
+  - DONE (2026-07-29): **targeted motion pass + sign-up legal links fix.**
+    Owner asked "animations / world-class the design?" — verdict: design
+    system is solid; broad animation would hurt (low-end Android ICP), so
+    only payoff moments got motion, all CSS/rAF, zero new deps, all behind
+    `prefers-reduced-motion` guards:
+    - **ScoreRing sweep + count-up** (`components/score-ring/index.tsx`, now
+      client): one rAF-driven value animates ring + number together (no
+      disagreement, no color flicker — accent keys off the real score).
+      Opt-in `animated` prop, ON at the three reveal moments (wizard
+      analysis 160px, guest checker 120px, editor live re-score 48px);
+      list/grid cards stay static by design.
+    - **`components/ui/reveal.tsx`**: fade-up-on-scroll wrapper, fail-safe
+      (content starts visible; only hides after mount when genuinely below
+      the fold; no-JS/reduced-motion = fully visible; animates once). Wired
+      into the landing page's below-fold sections (stance, 3 FeatureSections
+      via one wrap, proof, pricing, trust, final CTA). Hero deliberately
+      untouched.
+    - **Keyword chips stagger** on the wizard job step (tw-animate-css
+      `animate-in` + per-index delay, `fill-mode-both` verified present in
+      the installed package): new chips pop in as the user types; existing
+      chips never re-animate (keyed by term).
+    - **Kanban drop-settle**: cards remount on column change, so a 200ms
+      `animate-in` on the card doubles as the drop animation.
+    - **Sign-up ToS/Privacy links were dead `href="#"`** — now real Links to
+      `/terms` and `/privacy`.
+    - Verified: typecheck, lint, 84/84 tests. NOT visually verified in a
+      browser this session — owner should eyeball: analysis reveal, checker
+      result, landing scroll, job-step typing, kanban drag on their device.
+  - DONE (2026-07-29): **testimonial display path** — collection existed
+    (landing form → `support_requests` topic "testimonial" → inbox relay)
+    but nothing could ever be displayed. Now: `content/testimonials.ts` is
+    a curated, checked-in array (same pattern as content/legal — no admin
+    UI, nothing unreviewed can go live). Proof section renders testimonial
+    cards (quote verbatim, attribution, optional before→after score jump)
+    the moment the array is non-empty; until then the honest placeholder
+    stays. CTA shows in both states. **Owner workflow:** submission arrives
+    → reply for explicit permission + preferred attribution → paste quote
+    VERBATIM into the array (the section publicly promises "with
+    permission, unedited"). Verified: typecheck, lint, 84/84 tests.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections, ATS deep scan design.
 

@@ -207,7 +207,7 @@ function Result({
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-center gap-2 text-center">
-        <ScoreRing score={result.coverage} size={120} />
+        <ScoreRing score={result.coverage} size={120} animated />
         <p className="text-xs uppercase tracking-widest text-on-surface-variant">
           Keyword match
         </p>

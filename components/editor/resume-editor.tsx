@@ -165,7 +165,7 @@ export function ResumeEditor({
       {/* Sticky header with the live score */}
       <div className="sticky top-16 z-20 flex items-center justify-between gap-4 rounded-xl border border-border bg-surface/90 p-4 backdrop-blur-md">
         <div className="flex items-center gap-4">
-          <ScoreRing score={analysis.score} size={48} />
+          <ScoreRing score={analysis.score} size={48} animated />
           <div>
             <p className="text-sm font-semibold text-on-surface">
               {tailoring ? "Live match score" : "Baseline ATS score"}
