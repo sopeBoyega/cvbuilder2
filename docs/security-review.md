@@ -319,9 +319,17 @@ Work through in order; check off in this file as landed.
       cleanup + two-user regression test. *(2026-07-29: join landed; prod data
       scanned — 0 cross-tenant links. Regression test still TODO: needs a
       test-DB harness that doesn't exist yet.)*
-- [ ] **F2** Real rate limiter in `lib/rate-limit`; applied to public ATS
-      checker, imports, AI actions, exports. *(Open — needs an Upstash Redis
-      decision from the owner, or the Postgres fixed-window fallback.)*
+- [x] **F2** Real rate limiter in `lib/rate-limit`; applied to public ATS
+      checker, imports, AI actions, exports. *(2026-07-29: Upstash
+      `@upstash/ratelimit` sliding windows — checker 5/min/IP, ai 10/min/
+      profile, export 30/min/profile, scrape 10/min/profile. Fails **open**
+      on Redis error (availability > guard) and no-ops when the env vars are
+      unset. **Owner: set `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`
+      in Vercel or production runs unthrottled** — a boot warning logs when
+      they're missing. The AI limiter sits inside `assertWithinQuota`, so it
+      covers every metered call incl. Pro (a runaway loop costs money at any
+      tier). Note: the check-then-act race in the daily quota is unchanged —
+      the burst limiter makes it much harder to hit, not impossible.)*
 - [x] **F3** `max` bounds on all user-supplied strings; cap extracted text and
       LLM prompt input length. *(2026-07-29: `JobInput` title 200 / description
       20k; public checker paste capped 50k; extracted text capped 100k;

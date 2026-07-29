@@ -23,6 +23,7 @@ import {
   extractTextFromFile,
 } from "@/lib/documents/extract-text";
 import { getTemplate } from "@/lib/documents/templates";
+import { RateLimitError } from "@/lib/rate-limit";
 import { ResumeContent } from "@/lib/validation/resume";
 
 const IMPORT_SOURCES = ["upload", "linkedin"] as const;
@@ -82,6 +83,7 @@ export async function importResume(
     // F7) — AI SDK / DB errors would leak provider internals to the browser.
     const known =
       error instanceof QuotaExceededError ||
+      error instanceof RateLimitError ||
       error instanceof UnsupportedFileError ||
       error instanceof EmptyDocumentError;
     if (!known) console.error("[importResume] failed:", error);

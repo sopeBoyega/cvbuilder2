@@ -34,6 +34,7 @@ import {
   extractTextFromFile,
 } from "@/lib/documents/extract-text";
 import { ScrapeError, fetchJobPostingFromUrl } from "@/lib/jobs/scrape";
+import { RateLimitError, assertRateLimit } from "@/lib/rate-limit";
 import type { GapQuestion } from "@/lib/validation/ai";
 import { AtsAnalysis } from "@/lib/validation/ats";
 import { JobInput } from "@/lib/validation/job";
@@ -223,15 +224,19 @@ export async function extractJobDescriptionFromUrl(
   }
 
   try {
+    // Each call is a server-side outbound fetch — burst-limited per user (F2).
+    await assertRateLimit("scrape", userId);
     const scraped = await fetchJobPostingFromUrl(parsed.data);
     return { ok: true, ...scraped };
   } catch (error) {
+    const known =
+      error instanceof ScrapeError || error instanceof RateLimitError;
+    if (!known) console.error("[extractJobDescriptionFromUrl] failed:", error);
     return {
       ok: false,
-      error:
-        error instanceof ScrapeError
-          ? error.message
-          : "We couldn't read that page. Paste the description instead.",
+      error: known
+        ? error.message
+        : "We couldn't read that page. Paste the description instead.",
     };
   }
 }

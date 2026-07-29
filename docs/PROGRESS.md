@@ -492,9 +492,23 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     webhook**), F6 Stripe stub fails closed (501), F7 error-message
     allowlists, F8 default-deny `/api` in proxy.ts, and new F10: http(s)-only
     URL validation + `safeHttpUrl` render guard (javascript:-href XSS).
-    STILL OPEN: F2 rate limiting (needs Upstash decision or Postgres
-    fallback), CSP report-only rollout, CI audit/secret-scanning, F1
+    STILL OPEN: CSP report-only rollout, CI audit/secret-scanning, F1
     regression test. Verified: typecheck, lint (whole repo), 84/84 tests.
+  - DONE (2026-07-29): **F2 rate limiting — Upstash** (owner picked Upstash
+    over the Postgres fallback). `lib/rate-limit/index.ts` is now real:
+    `@upstash/ratelimit` sliding windows, one limiter per surface so a flood
+    of one kind can't starve another — checker 5/min/IP (the only anonymous
+    action), ai 10/min/profile, export 30/min/profile, scrape 10/min/profile.
+    Wired at: `checkAtsMatch`, `assertWithinQuota` (so it covers EVERY metered
+    AI call, Pro included — a runaway loop costs money at any tier), both
+    export routes (429), and `extractJobDescriptionFromUrl`. `RateLimitError`
+    is in the F7 allowlists + `friendlyAiError`, so its message reaches users
+    verbatim. **Fails open** on a Redis error and no-ops entirely when the env
+    vars are unset (dev/test friction-free) — which means **the owner MUST set
+    `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` in Vercel or prod is
+    unthrottled**; a boot warning logs when they're missing.
+    NOT verified against a live Redis (no Upstash creds in this sandbox) —
+    owner should confirm by hammering the guest checker >5x/min after deploy.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections, ATS deep scan design.
 

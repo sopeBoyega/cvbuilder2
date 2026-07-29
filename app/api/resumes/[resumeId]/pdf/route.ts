@@ -5,6 +5,7 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { profiles, resumeVersions, resumes } from "@/lib/db/schema";
 import { renderResumePdf, resolveTemplateId } from "@/lib/documents/pdf";
+import { RateLimitError, assertRateLimit } from "@/lib/rate-limit";
 import { ResumeContent } from "@/lib/validation/resume";
 
 /** @react-pdf/renderer needs Node APIs; it cannot run on the edge. */
@@ -40,6 +41,16 @@ export async function GET(
     .limit(1);
   if (!profile) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // PDF rendering is CPU-heavy — burst-limited per profile (F2).
+  try {
+    await assertRateLimit("export", profile.id);
+  } catch (error) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
+    throw error;
   }
 
   // Scope by profile so one user can never export another's resume.

@@ -7,6 +7,7 @@ import { DOCX_PRO_MESSAGE } from "@/lib/billing/limits";
 import { db } from "@/lib/db";
 import { profiles, resumeVersions, resumes } from "@/lib/db/schema";
 import { renderResumeDocx } from "@/lib/documents/docx";
+import { RateLimitError, assertRateLimit } from "@/lib/rate-limit";
 import { ResumeContent } from "@/lib/validation/resume";
 
 /** The docx library needs Node APIs; it cannot run on the edge. */
@@ -46,6 +47,16 @@ export async function GET(
     .limit(1);
   if (!profile) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // DOCX rendering is CPU-heavy — burst-limited per profile (F2).
+  try {
+    await assertRateLimit("export", profile.id);
+  } catch (error) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
+    throw error;
   }
 
   // DOCX is a Pro entitlement (/pricing); PDF stays free. The UI hides this

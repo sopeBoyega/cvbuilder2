@@ -1,5 +1,7 @@
 "use server";
 
+import { headers } from "next/headers";
+
 import { extractJobKeywords, matchKeywords } from "@/lib/ats";
 import {
   EmptyDocumentError,
@@ -7,6 +9,11 @@ import {
   UnsupportedFileError,
   extractTextFromFile,
 } from "@/lib/documents/extract-text";
+import {
+  RateLimitError,
+  assertRateLimit,
+  clientIpFrom,
+} from "@/lib/rate-limit";
 import { MIN_JD_LENGTH } from "@/lib/validation/job";
 
 /**
@@ -41,6 +48,17 @@ export type AtsCheckResult =
 export async function checkAtsMatch(
   formData: FormData,
 ): Promise<AtsCheckResult> {
+  // Anonymous surface → IP-keyed burst limit (F2). The only unauthenticated
+  // action in the app, so it gets the tightest window.
+  try {
+    await assertRateLimit("checker", clientIpFrom(await headers()));
+  } catch (error) {
+    if (error instanceof RateLimitError) {
+      return { ok: false, error: error.message };
+    }
+    throw error;
+  }
+
   const jobDescription = String(formData.get("jobDescription") ?? "")
     .trim()
     .slice(0, MAX_PASTED_CHARS);
