@@ -12,6 +12,14 @@ const MIN_TEXT_LENGTH = 40;
 /** 10 MB — comfortably covers any real resume, blocks abuse. */
 export const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
+/**
+ * Cap on the *extracted* text, independent of file size: a 10 MB DOCX is
+ * compressed and can decompress to far more (security review F3 — every byte
+ * cap on an upload needs a matching cap on the decoded output). No real
+ * resume is anywhere near 100k characters; truncate rather than fail.
+ */
+const MAX_EXTRACTED_CHARS = 100_000;
+
 const PDF_MIME = "application/pdf";
 const DOCX_MIME =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -51,7 +59,7 @@ export async function extractTextFromFile(file: File): Promise<string> {
   if (normalized.length < MIN_TEXT_LENGTH) {
     throw new EmptyDocumentError();
   }
-  return normalized;
+  return normalized.slice(0, MAX_EXTRACTED_CHARS);
 }
 
 async function extractPdf(buffer: Buffer): Promise<string> {

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { MAX_JD_LENGTH } from "@/lib/validation/job";
+
 /**
  * Fetch + extract a job description from a posting URL.
  *
@@ -241,7 +243,8 @@ export function parseJobPostingHtml(html: string): ScrapedJobPosting {
       const org = ld.hiringOrganization;
       return {
         // JSON-LD descriptions still carry EEO/privacy tails on most boards.
-        text: trimJobBoilerplate(text),
+        // Capped so the result always fits JobInput's description max.
+        text: trimJobBoilerplate(text).slice(0, MAX_JD_LENGTH),
         title: ld.title?.trim() || null,
         company:
           (typeof org === "string" ? org : org?.name)?.trim() || null,
@@ -262,7 +265,11 @@ export function parseJobPostingHtml(html: string): ScrapedJobPosting {
       `We couldn't find a job description on that page — it may load its content with JavaScript. ${PASTE_INSTEAD}`,
     );
   }
-  return { text: trimJobBoilerplate(text), title: null, company: null };
+  return {
+    text: trimJobBoilerplate(text).slice(0, MAX_JD_LENGTH),
+    title: null,
+    company: null,
+  };
 }
 
 export async function fetchJobPostingFromUrl(

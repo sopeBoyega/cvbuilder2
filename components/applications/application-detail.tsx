@@ -32,7 +32,7 @@ import {
   APPLICATION_STATUS_META,
   type ApplicationStatus,
 } from "@/lib/validation/application";
-import { cn } from "@/lib/utils";
+import { cn, safeHttpUrl } from "@/lib/utils";
 
 /*
  * Adapted from the "Application Detail" design: header card with status,
@@ -433,6 +433,7 @@ function JobDescriptionCard({
   url: string | null;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const postingUrl = safeHttpUrl(url);
   const truncated = description.length > DESCRIPTION_PREVIEW_CHARS;
   const shown =
     expanded || !truncated
@@ -460,9 +461,9 @@ function JobDescriptionCard({
             {expanded ? "Collapse" : "View full description"}
           </button>
         ) : null}
-        {url ? (
+        {postingUrl ? (
           <a
-            href={url}
+            href={postingUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 font-mono text-xs text-on-surface-variant transition-colors hover:text-primary"

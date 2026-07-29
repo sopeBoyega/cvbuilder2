@@ -294,25 +294,57 @@ model has no tools. Keep it that way.
 - If tools/function-calling are added to any of these calls, treat the resume
   text as hostile input and re-review.
 
+### F10 — MEDIUM (found + fixed 2026-07-29) · `javascript:` URLs could reach anchor hrefs
+
+**Where:** `JobInput.url` accepted any URL scheme; JSearch listing URLs had no
+scheme check; rendered at `components/discover/discover-feed.tsx` and the
+application detail's "Original posting" link. The Discover "Tailor my resume
+to this" flow copies a third-party listing URL into the user's own `jobs`
+row, so a malicious upstream listing could become a stored XSS link.
+
+**Fixed:** `JobInput.url` now `z.url({ protocol: /^https?$/ })`; JSearch
+`normalize()` drops non-http(s) apply links; `lib/utils.ts::safeHttpUrl` is
+the render guard on both anchors (covers any bad data already stored).
+
+**Prevention:** any href whose value comes from a user or a third-party feed
+goes through `safeHttpUrl` at render, and its schema validates protocol.
+
 ---
 
 ## Hardening checklist (the "what to put in place" list)
 
 Work through in order; check off in this file as landed.
 
-- [ ] **F1** Ownership join for `resumeVersionId` in `createApplication` + data
-      cleanup + two-user regression test.
+- [x] **F1** Ownership join for `resumeVersionId` in `createApplication` + data
+      cleanup + two-user regression test. *(2026-07-29: join landed; prod data
+      scanned — 0 cross-tenant links. Regression test still TODO: needs a
+      test-DB harness that doesn't exist yet.)*
 - [ ] **F2** Real rate limiter in `lib/rate-limit`; applied to public ATS
-      checker, imports, AI actions, exports.
-- [ ] **F3** `max` bounds on all user-supplied strings; cap extracted text and
-      LLM prompt input length.
-- [ ] **F4** Security headers in `next.config.ts`; report-only CSP via
-      `proxy.ts`, then enforce.
-- [ ] **F5** `user.deleted` (+ `user.updated`) webhook handling; verify FK
-      cascades in `lib/db/schema.ts`.
-- [ ] **F6** Stripe webhook fails closed until billing ships.
-- [ ] **F7** Error-message allowlist in all action catch blocks.
-- [ ] **F8** Default-deny `/api` in `proxy.ts` with an explicit public allowlist.
+      checker, imports, AI actions, exports. *(Open — needs an Upstash Redis
+      decision from the owner, or the Postgres fixed-window fallback.)*
+- [x] **F3** `max` bounds on all user-supplied strings; cap extracted text and
+      LLM prompt input length. *(2026-07-29: `JobInput` title 200 / description
+      20k; public checker paste capped 50k; extracted text capped 100k;
+      `structureResume` prompt capped 30k.)*
+- [x] **F4** Security headers in `next.config.ts`; report-only CSP via
+      `proxy.ts`, then enforce. *(2026-07-29: static headers shipped — nosniff,
+      X-Frame-Options DENY, Referrer-Policy, HSTS, Permissions-Policy. CSP
+      still open: enumerate Clerk/PostHog endpoints from live traffic, ship
+      report-only first.)*
+- [x] **F5** `user.deleted` (+ `user.updated`) webhook handling; verify FK
+      cascades in `lib/db/schema.ts`. *(2026-07-29: both handled; cascades
+      verified present on all profile FKs — subscriptions keep their row with
+      profile_id set null, by design. **Owner: subscribe the webhook to
+      `user.deleted` + `user.updated` in the Clerk dashboard (production
+      instance) or the events never arrive.**)*
+- [x] **F6** Stripe webhook fails closed until billing ships. *(2026-07-29:
+      returns 501 with a loud comment.)*
+- [x] **F7** Error-message allowlist in all action catch blocks. *(2026-07-29:
+      importResume, extractJobDescriptionFromFile, saveTailoredResume limit
+      check, public checker extraction. Scrape/AI actions already allowlisted
+      via ScrapeError/friendlyAiError.)*
+- [x] **F8** Default-deny `/api` in `proxy.ts` with an explicit public
+      allowlist (webhooks, cron, og, templates, inngest). *(2026-07-29.)*
 - [ ] CI: `pnpm audit` (or Dependabot/Renovate) so vulnerable transitive deps
       surface automatically; this audit did not evaluate dependency CVEs.
 - [ ] CI: secret scanning (gitleaks or GitHub secret scanning) — history is

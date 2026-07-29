@@ -2,7 +2,9 @@
 
 import { extractJobKeywords, matchKeywords } from "@/lib/ats";
 import {
+  EmptyDocumentError,
   MAX_FILE_BYTES,
+  UnsupportedFileError,
   extractTextFromFile,
 } from "@/lib/documents/extract-text";
 import { MIN_JD_LENGTH } from "@/lib/validation/job";
@@ -19,6 +21,13 @@ import { MIN_JD_LENGTH } from "@/lib/validation/job";
 
 const MIN_RESUME_LENGTH = 120;
 
+/**
+ * Upper bounds on pasted text (security review F3): beyond this it's not a
+ * resume/JD, it's a payload. Truncation (not rejection) keeps the lead magnet
+ * friendly — the first 50k chars of any real document carry all the signal.
+ */
+const MAX_PASTED_CHARS = 50_000;
+
 export type AtsCheckResult =
   | {
       ok: true;
@@ -32,8 +41,12 @@ export type AtsCheckResult =
 export async function checkAtsMatch(
   formData: FormData,
 ): Promise<AtsCheckResult> {
-  const jobDescription = String(formData.get("jobDescription") ?? "").trim();
-  const pasted = String(formData.get("resumeText") ?? "").trim();
+  const jobDescription = String(formData.get("jobDescription") ?? "")
+    .trim()
+    .slice(0, MAX_PASTED_CHARS);
+  const pasted = String(formData.get("resumeText") ?? "")
+    .trim()
+    .slice(0, MAX_PASTED_CHARS);
   const file = formData.get("file");
 
   if (jobDescription.length < MIN_JD_LENGTH) {
@@ -53,12 +66,17 @@ export async function checkAtsMatch(
     try {
       resumeText = await extractTextFromFile(file);
     } catch (error) {
+      // Only messages from our own error classes reach the client (F7);
+      // library/internal errors are logged server-side.
+      const known =
+        error instanceof UnsupportedFileError ||
+        error instanceof EmptyDocumentError;
+      if (!known) console.error("[public-ats] extraction failed:", error);
       return {
         ok: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "We couldn't read that file. Paste the text instead.",
+        error: known
+          ? error.message
+          : "We couldn't read that file. Paste the text instead.",
       };
     }
   }

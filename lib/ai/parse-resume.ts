@@ -20,6 +20,14 @@ export type StructuredResume = {
 };
 
 /**
+ * Cap on what one parse call sends to the model — the daily quota counts
+ * calls, not tokens, so without this a single import could be arbitrarily
+ * expensive (same discipline as MAX_EMBED_CHARS in lib/ai/embeddings.ts).
+ * 30k chars ≈ a 10+ page resume; nothing real is lost.
+ */
+const MAX_PARSE_CHARS = 30_000;
+
+/**
  * Turns extracted resume text into a typed, runtime-validated `ResumeContent`.
  * Throws if the AI provider key is missing or the model output can't be
  * coerced to the schema (the AI SDK validates against the Zod schema). Returns
@@ -40,7 +48,7 @@ export async function structureResume(
     schemaName: "ResumeContent",
     schemaDescription: "A structured resume parsed from raw document text.",
     system: SYSTEM_PROMPT,
-    prompt: `Parse the following resume text into the ResumeContent schema.\n\n---\n${rawText}`,
+    prompt: `Parse the following resume text into the ResumeContent schema.\n\n---\n${rawText.slice(0, MAX_PARSE_CHARS)}`,
   });
 
   return {

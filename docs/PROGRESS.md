@@ -483,6 +483,18 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     → reply for explicit permission + preferred attribution → paste quote
     VERBATIM into the array (the section publicly promises "with
     permission, unedited"). Verified: typecheck, lint, 84/84 tests.
+  - DONE (2026-07-29): **security hardening pass** per `docs/security-review.md`
+    (checklist updated in that file — it is the source of truth). Landed: F1
+    IDOR ownership join (+ prod data scan, 0 bad rows), F3 input caps
+    (JD 20k, checker paste 50k, extracted text 100k, parse prompt 30k), F4
+    static security headers (CSP still open), F5 `user.deleted`/`user.updated`
+    webhook handling (**owner: subscribe both events in the Clerk production
+    webhook**), F6 Stripe stub fails closed (501), F7 error-message
+    allowlists, F8 default-deny `/api` in proxy.ts, and new F10: http(s)-only
+    URL validation + `safeHttpUrl` render guard (javascript:-href XSS).
+    STILL OPEN: F2 rate limiting (needs Upstash decision or Postgres
+    fallback), CSP report-only rollout, CI audit/secret-scanning, F1
+    regression test. Verified: typecheck, lint (whole repo), 84/84 tests.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections, ATS deep scan design.
 
