@@ -285,11 +285,14 @@ export function JobStep() {
               {company ? <EntityChip icon={Building2} label={company} /> : null}
               {seniority ? <EntityChip icon={Medal} label={seniority} /> : null}
 
-              {keywords.map((keyword) => (
+              {keywords.map((keyword, index) => (
                 <span
                   key={keyword.term}
                   title={keyword.known ? "Known skill" : "Detected from frequency"}
-                  className="flex items-center gap-2 rounded border border-green-hi/30 bg-green-hi/10 px-4 py-2 font-mono text-xs text-green-hi"
+                  // Stagger keyed by term: newly detected chips pop in as the
+                  // user types; chips already on screen never re-animate.
+                  style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+                  className="flex items-center gap-2 rounded border border-green-hi/30 bg-green-hi/10 px-4 py-2 font-mono text-xs text-green-hi motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95 motion-safe:duration-300 motion-safe:fill-mode-both"
                 >
                   {keyword.term}
                   {keyword.known ? (

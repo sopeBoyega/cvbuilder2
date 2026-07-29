@@ -114,7 +114,9 @@ function Card({
       }}
       onDragEnd={onDragEnd}
       className={cn(
-        "group cursor-grab rounded-lg border border-border bg-surface p-4 transition-all hover:border-[var(--border-strong)] active:cursor-grabbing",
+        // The card remounts when it changes column, so animate-in doubles as
+        // a drop-settle: it plays as the card lands in its new column.
+        "group cursor-grab rounded-lg border border-border bg-surface p-4 transition-all hover:border-[var(--border-strong)] active:cursor-grabbing motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95 motion-safe:duration-200",
         dragging && "opacity-40",
       )}
     >

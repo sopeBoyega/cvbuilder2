@@ -290,13 +290,19 @@ export default function SignUpPage() {
 
                 <p className="mx-auto mt-10 max-w-xs text-center text-xs font-medium uppercase leading-[1.15] tracking-[0.06em] text-on-surface-variant/60">
                   By creating an account, you agree to our{" "}
-                  <a href="#" className="underline transition-colors hover:text-on-surface">
+                  <Link
+                    href="/terms"
+                    className="underline transition-colors hover:text-on-surface"
+                  >
                     Terms of Service
-                  </a>{" "}
+                  </Link>{" "}
                   and{" "}
-                  <a href="#" className="underline transition-colors hover:text-on-surface">
+                  <Link
+                    href="/privacy"
+                    className="underline transition-colors hover:text-on-surface"
+                  >
                     Privacy Policy
-                  </a>
+                  </Link>
                   .
                 </p>
               </div>
