@@ -537,9 +537,26 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     - Free, not Pro-gated (nothing on /pricing promises it, and "we show our
       work" is the trust pillar). Entry: "Deep scan" button on the resume
       detail toolbar. Honest footer names what it can't check.
-    - Verified: typecheck, lint, 93/93 tests (9 new). NOT visually checked in
-      a browser — owner should eyeball it against a real imported PDF, where
-      the dropped-lines panel actually has something to show.
+    - Verified: typecheck, lint, 93/93 tests (9 new).
+    - **FIXED same day after the owner scanned a real resume** — two display
+      bugs, both in `toExtractedGroups`/`ParsePreview`, not the parser (it had
+      correctly extracted all content):
+      1. **Bullets showed `"5 found"` instead of the text.** A summary makes it
+         impossible to verify a bullet survived, which is the whole point. Now
+         every bullet is its own verbatim row (`0.bullets[0]`, …). Guarded by a
+         test asserting no field value ends in "found".
+      2. **`certifications` was never emitted at all** — a resume with 5 showed
+         none. Also added: work `location`, education `dates`/`degree` split,
+         project `description`+bullets, and `projects`/`certifications` now
+         always render (as an explicit null row when empty, per the show-absence
+         principle).
+      3. **Long values forced horizontal page scroll.** The structured view was
+         a `<pre>`, whose `white-space: pre` blocks wrapping — a long summary
+         overflowed the viewport. Now a `div` (indentation via padding, not
+         literal spaces) with `flex` rows: `shrink-0` label + `min-w-0
+         wrap-anywhere` value, and `overflow-x-hidden` as a guard. Panel also
+         taller on desktop (`lg:max-h-[46rem]`) now that content is complete.
+      97/97 tests. Still not eyeballed in a browser by the assistant.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections.
 

@@ -52,9 +52,15 @@ export function ParsePreview({
         </div>
       </header>
 
-      <div className="max-h-[32rem] overflow-auto p-4">
+      {/* overflow-x-hidden: long values must wrap, never scroll the page. */}
+      <div className="max-h-[32rem] overflow-y-auto overflow-x-hidden p-4 lg:max-h-[46rem]">
         {view === "structured" ? (
-          <pre className="font-mono text-xs leading-6 text-on-surface-variant">
+          /*
+           * A plain div, not <pre>: `white-space: pre` prevents wrapping, so a
+           * long summary or bullet would force horizontal overflow. Indentation
+           * comes from padding instead of literal spaces.
+           */
+          <div className="font-mono text-xs leading-6 text-on-surface-variant">
             {groups.map((group) => (
               <div key={group.name} className="mb-3">
                 <span className="text-primary">{group.name}</span>
@@ -62,10 +68,12 @@ export function ParsePreview({
                 {group.fields.map((field) => (
                   <div
                     key={`${group.name}.${field.label}`}
-                    className="pl-4 wrap-anywhere"
+                    className="flex gap-2 pl-4"
                   >
-                    <span className="text-indigo-hi">{field.label}</span>
-                    <span className="text-on-surface-variant/50">: </span>
+                    <span className="shrink-0 text-indigo-hi">
+                      {field.label}
+                      <span className="text-on-surface-variant/50">:</span>
+                    </span>
                     {field.value === null ? (
                       <span
                         className={cn(
@@ -78,14 +86,16 @@ export function ParsePreview({
                         null
                       </span>
                     ) : (
-                      <span className="text-on-surface">{field.value}</span>
+                      <span className="min-w-0 text-on-surface wrap-anywhere">
+                        {field.value}
+                      </span>
                     )}
                   </div>
                 ))}
                 <span className="text-on-surface-variant/50">{"}"}</span>
               </div>
             ))}
-          </pre>
+          </div>
         ) : (
           <pre className="whitespace-pre-wrap font-mono text-xs leading-6 text-on-surface-variant wrap-anywhere">
             {rawText}
