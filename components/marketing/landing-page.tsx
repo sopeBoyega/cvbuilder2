@@ -876,7 +876,7 @@ export function LandingPage({
                         &ldquo;{testimonial.quote}&rdquo;
                       </blockquote>
                       <figcaption className="mt-4 font-mono text-xs uppercase tracking-wider text-[#9BA1A6]">
-                        — {testimonial.attribution}
+                        {testimonial.attribution}
                       </figcaption>
                     </figure>
                   ))}

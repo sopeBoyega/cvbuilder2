@@ -28,7 +28,7 @@ export const JobInput = z.object({
     )
     .max(
       MAX_JD_LENGTH,
-      "That looks longer than a job description — trim it to the posting itself.",
+      "That looks longer than a job description. Trim it to the posting itself.",
     ),
   // An untouched URL input submits "", which we treat as "no URL". Anchors
   // render this value, so only http(s) is accepted (no javascript: hrefs).
