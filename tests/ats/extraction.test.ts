@@ -116,4 +116,66 @@ describe("toExtractedGroups", () => {
     );
     expect(work?.name).toBe("experience[1]");
   });
+
+  it("lists every bullet verbatim instead of summarising the count", () => {
+    const work = toExtractedGroups(content).find((group) =>
+      group.name.startsWith("experience"),
+    );
+
+    expect(
+      work?.fields.find((field) => field.label === "0.bullets[0]")?.value,
+    ).toBe("Built a compiler for the difference engine using Rust");
+
+    // Regression: a "5 found" summary made it impossible to verify that a
+    // bullet actually survived parsing, which is the point of the scan.
+    expect(work?.fields.some((field) => field.value?.endsWith("found"))).toBe(
+      false,
+    );
+  });
+
+  it("always emits every section group, even when empty", () => {
+    const names = toExtractedGroups(content).map((group) => group.name);
+
+    // Regression: certifications were omitted entirely, so a resume with five
+    // of them showed none.
+    expect(names).toContain("certifications[0]");
+    expect(names).toContain("projects[0]");
+    expect(names).toContain("skills[2]");
+  });
+
+  it("renders a certification as name · issuer · year", () => {
+    const withCerts = ResumeContent.parse({
+      ...content,
+      certifications: [
+        { name: "C++", issuer: "Codecademy", year: "September 2022" },
+      ],
+    });
+    const certs = toExtractedGroups(withCerts).find((group) =>
+      group.name.startsWith("certifications"),
+    );
+
+    expect(certs?.name).toBe("certifications[1]");
+    expect(certs?.fields[0].value).toBe("C++ · Codecademy · September 2022");
+  });
+
+  it("keeps education dates rather than dropping them", () => {
+    const withSchool = ResumeContent.parse({
+      ...content,
+      education: [
+        {
+          school: "Middlesex University UK",
+          degree: "Bsc",
+          field: "Business Computing",
+          start: "Sept 2026",
+        },
+      ],
+    });
+    const education = toExtractedGroups(withSchool).find((group) =>
+      group.name.startsWith("education"),
+    );
+
+    expect(
+      education?.fields.find((field) => field.label === "0.dates")?.value,
+    ).toBe("Sept 2026 → present");
+  });
 });

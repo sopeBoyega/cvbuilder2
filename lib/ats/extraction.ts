@@ -163,10 +163,20 @@ export type ExtractedGroup = {
   fields: ExtractedField[];
 };
 
+/** `start → end` as the resume worded it, or null when no dates parsed. */
+function dateRange(start?: string, end?: string | null): string | null {
+  if (!start) return null;
+  return `${start} → ${end ?? "present"}`;
+}
+
 /**
  * Flattens `ResumeContent` into the labelled groups the parse preview renders.
- * Shows absence explicitly — a missing phone is a `null` row, not a hidden one,
- * because the whole point is seeing what the machine did and didn't find.
+ *
+ * Completeness is the contract: every section, every entry, every bullet,
+ * verbatim. Summarising ("5 bullets found") would defeat the entire purpose —
+ * a user cannot verify that a bullet survived parsing unless they can read it.
+ * Absence is shown explicitly too: a missing phone is a `null` row, not a
+ * hidden one, because seeing what the machine did *not* find is the point.
  */
 export function toExtractedGroups(content: ResumeContent): ExtractedGroup[] {
   const { basics } = content;
@@ -181,9 +191,11 @@ export function toExtractedGroups(content: ResumeContent): ExtractedGroup[] {
         { label: "location", value: basics.location ?? null, critical: false },
         { label: "headline", value: basics.headline ?? null, critical: false },
         {
-          label: "links",
+          label: `links[${basics.links.length}]`,
           value: basics.links.length
-            ? basics.links.map((link) => link.label || link.url).join(", ")
+            ? basics.links
+                .map((link) => (link.label ? `${link.label}: ${link.url}` : link.url))
+                .join("  ·  ")
             : null,
           critical: false,
         },
@@ -216,15 +228,29 @@ export function toExtractedGroups(content: ResumeContent): ExtractedGroup[] {
             critical: true,
           },
           {
-            label: `${index}.dates`,
-            value: entry.start ? `${entry.start} → ${entry.end ?? "present"}` : null,
-            critical: true,
+            label: `${index}.location`,
+            value: entry.location ?? null,
+            critical: false,
           },
           {
-            label: `${index}.bullets`,
-            value: entry.bullets.length ? `${entry.bullets.length} found` : null,
+            label: `${index}.dates`,
+            value: dateRange(entry.start, entry.end),
             critical: true,
           },
+          // Verbatim, one row each — the only way to confirm a bullet parsed.
+          ...(entry.bullets.length
+            ? entry.bullets.map((bullet, bulletIndex) => ({
+                label: `${index}.bullets[${bulletIndex}]`,
+                value: bullet,
+                critical: false,
+              }))
+            : [
+                {
+                  label: `${index}.bullets`,
+                  value: null,
+                  critical: true,
+                },
+              ]),
         ])
       : [{ label: "—", value: null, critical: true }],
   });
@@ -232,14 +258,24 @@ export function toExtractedGroups(content: ResumeContent): ExtractedGroup[] {
   groups.push({
     name: `education[${content.education.length}]`,
     fields: content.education.length
-      ? content.education.map((entry, index) => ({
-          label: `${index}.school`,
-          value:
-            [entry.school, entry.degree, entry.field]
-              .filter(Boolean)
-              .join(" · ") || null,
-          critical: false,
-        }))
+      ? content.education.flatMap((entry, index) => [
+          {
+            label: `${index}.school`,
+            value: entry.school.trim() || null,
+            critical: false,
+          },
+          {
+            label: `${index}.degree`,
+            value:
+              [entry.degree, entry.field].filter(Boolean).join(", ") || null,
+            critical: false,
+          },
+          {
+            label: `${index}.dates`,
+            value: dateRange(entry.start, entry.end),
+            critical: false,
+          },
+        ])
       : [{ label: "—", value: null, critical: false }],
   });
 
@@ -254,16 +290,41 @@ export function toExtractedGroups(content: ResumeContent): ExtractedGroup[] {
     ],
   });
 
-  if (content.projects.length > 0) {
-    groups.push({
-      name: `projects[${content.projects.length}]`,
-      fields: content.projects.map((entry, index) => ({
-        label: `${index}.name`,
-        value: entry.name.trim() || null,
-        critical: false,
-      })),
-    });
-  }
+  groups.push({
+    name: `projects[${content.projects.length}]`,
+    fields: content.projects.length
+      ? content.projects.flatMap((entry, index) => [
+          {
+            label: `${index}.name`,
+            value: entry.name.trim() || null,
+            critical: false,
+          },
+          {
+            label: `${index}.description`,
+            value: entry.description?.trim() || null,
+            critical: false,
+          },
+          ...entry.bullets.map((bullet, bulletIndex) => ({
+            label: `${index}.bullets[${bulletIndex}]`,
+            value: bullet,
+            critical: false,
+          })),
+        ])
+      : [{ label: "—", value: null, critical: false }],
+  });
+
+  groups.push({
+    name: `certifications[${content.certifications.length}]`,
+    fields: content.certifications.length
+      ? content.certifications.map((entry, index) => ({
+          label: `${index}`,
+          value:
+            [entry.name, entry.issuer, entry.year].filter(Boolean).join(" · ") ||
+            null,
+          critical: false,
+        }))
+      : [{ label: "—", value: null, critical: false }],
+  });
 
   return groups;
 }
