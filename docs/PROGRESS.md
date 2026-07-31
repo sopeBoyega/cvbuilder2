@@ -582,6 +582,14 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
     - Verified: typecheck, lint, 97/97 tests. NOT visually checked in a
       browser — worth a look at both the expanded and collapsed sidebar
       states, and on mobile width, before calling it done.
+  - DONE (2026-07-31): **Google sign-in is live.** Google Cloud verification
+    approved; owner added the Google Client ID/Secret to Clerk's production
+    instance SSO connections and tested it themselves before asking to flip
+    the flag. `lib/features.ts::GOOGLE_AUTH_ENABLED` → `true` — the "Continue
+    with Google" button now shows on both `/sign-in` and `/sign-up`.
+    `LINKEDIN_AUTH_ENABLED` stays `false` (separate provider, hasn't been set
+    up in Clerk yet; the two flags were deliberately split on 2026-07-30 so
+    one could go live without the other). Verified: typecheck, lint.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections.
 
