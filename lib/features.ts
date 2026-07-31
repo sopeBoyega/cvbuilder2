@@ -18,6 +18,6 @@
  * wired regardless of these flags.
  */
 /** ON since 2026-07-31: Google Cloud verification approved, credentials added to Clerk production. */
-export const GOOGLE_AUTH_ENABLED: boolean = true;
+export const GOOGLE_AUTH_ENABLED: boolean = false;
 /** LinkedIn hasn't been through Clerk SSO setup yet — separate from Google's approval. */
 export const LINKEDIN_AUTH_ENABLED: boolean = false;
