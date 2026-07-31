@@ -157,7 +157,7 @@ function WarmingUpState() {
       <EmptyState
         icon={Compass}
         title="Discover is warming up"
-        description="We're pulling in the first batch of listings. The feed refreshes a few times a day — check back shortly."
+        description="We're pulling in the first batch of listings. The feed refreshes a few times a day, so check back shortly."
       />
     </div>
   );

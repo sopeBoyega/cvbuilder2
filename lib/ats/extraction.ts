@@ -252,7 +252,7 @@ export function toExtractedGroups(content: ResumeContent): ExtractedGroup[] {
                 },
               ]),
         ])
-      : [{ label: "—", value: null, critical: true }],
+      : [{ label: "entries", value: null, critical: true }],
   });
 
   groups.push({
@@ -276,7 +276,7 @@ export function toExtractedGroups(content: ResumeContent): ExtractedGroup[] {
             critical: false,
           },
         ])
-      : [{ label: "—", value: null, critical: false }],
+      : [{ label: "entries", value: null, critical: false }],
   });
 
   groups.push({
@@ -310,7 +310,7 @@ export function toExtractedGroups(content: ResumeContent): ExtractedGroup[] {
             critical: false,
           })),
         ])
-      : [{ label: "—", value: null, critical: false }],
+      : [{ label: "entries", value: null, critical: false }],
   });
 
   groups.push({
@@ -323,7 +323,7 @@ export function toExtractedGroups(content: ResumeContent): ExtractedGroup[] {
             null,
           critical: false,
         }))
-      : [{ label: "—", value: null, critical: false }],
+      : [{ label: "entries", value: null, critical: false }],
   });
 
   return groups;

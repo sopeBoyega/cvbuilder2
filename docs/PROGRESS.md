@@ -557,6 +557,39 @@ a top `// @vitest-environment node` comment (jsdom made them time out).
          wrap-anywhere` value, and `overflow-x-hidden` as a guard. Panel also
          taller on desktop (`lg:max-h-[46rem]`) now that content is complete.
       97/97 tests. Still not eyeballed in a browser by the assistant.
+  - DONE (2026-07-30): **real sidebar identity block, replacing the "temp"
+    top-header sign-out.** Owner flagged the header's sign-out button (its own
+    `title` literally said "(temp)") and asked for a proper one in the
+    sidebar with an avatar + username.
+    - `components/shell/user-avatar.tsx`: real uploaded photo when Clerk has
+      one (`user.hasImage`); otherwise a generated initials badge, colored by
+      hashing the **Clerk user id** (stable across sessions/devices, not
+      re-rolled per render) into the same 4 accent hexes as `globals.css`
+      (green/indigo/coral/blue). No new dependency — matters right now
+      because social login is OFF (`lib/features.ts`), so nearly every user
+      is an email/password sign-up with no OAuth-sourced photo; relying on
+      Clerk's own `imageUrl` alone would mean most users show the same
+      generic gray icon.
+    - Sidebar footer (`app/(app)/layout.tsx`): avatar + `user.username` (the
+      sign-up form collects one, so it's populated for every user) linking to
+      `/settings/profile`, plus a real sign-out button beside it. Collapsed
+      sidebar shows avatar only, centered.
+    - **Deliberately did NOT remove the header's sign-out entirely** — it's
+      now `md:hidden`. The sidebar is `hidden md:flex` (desktop-only); mobile
+      has no sidebar, so if the header button were deleted outright, mobile
+      users would have had no way to sign out at all. Header keeps it as
+      mobile's only path; desktop now uses the sidebar exclusively.
+    - Verified: typecheck, lint, 97/97 tests. NOT visually checked in a
+      browser — worth a look at both the expanded and collapsed sidebar
+      states, and on mobile width, before calling it done.
+  - DONE (2026-07-31): **Google sign-in is live.** Google Cloud verification
+    approved; owner added the Google Client ID/Secret to Clerk's production
+    instance SSO connections and tested it themselves before asking to flip
+    the flag. `lib/features.ts::GOOGLE_AUTH_ENABLED` → `true` — the "Continue
+    with Google" button now shows on both `/sign-in` and `/sign-up`.
+    `LINKEDIN_AUTH_ENABLED` stays `false` (separate provider, hasn't been set
+    up in Clerk yet; the two flags were deliberately split on 2026-07-30 so
+    one could go live without the other). Verified: typecheck, lint.
   - NOT STARTED: Job Search Pass + Lifetime purchases, final landing copy
     (messaging house), §7 privacy corrections.
 

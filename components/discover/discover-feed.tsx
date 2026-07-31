@@ -32,7 +32,7 @@ export function DiscoverFeed({
     return (
       <p className="rounded-xl border border-dashed border-border bg-surface p-8 text-center text-sm text-on-surface-variant">
         Nothing ranked highly enough this round. The feed refreshes a few
-        times a day — check back soon.
+        times a day, so check back soon.
       </p>
     );
   }

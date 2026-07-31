@@ -11,7 +11,7 @@ import { GoogleIcon, LinkedInIcon } from "@/components/auth/oauth-icons";
 import { PasswordField } from "@/components/auth/password-field";
 import { Logo } from "@/components/shell/logo";
 import { BRAND } from "@/lib/brand";
-import { SOCIAL_AUTH_ENABLED } from "@/lib/features";
+import { GOOGLE_AUTH_ENABLED, LINKEDIN_AUTH_ENABLED } from "@/lib/features";
 
 type OAuthStrategy = "oauth_google" | "oauth_linkedin_oidc";
 
@@ -130,31 +130,35 @@ export default function SignInPage() {
         >
           <div className="absolute left-0 top-0 h-px w-full bg-linear-to-r from-transparent via-primary-container/50 to-transparent" />
 
-          {SOCIAL_AUTH_ENABLED ? (
+          {GOOGLE_AUTH_ENABLED || LINKEDIN_AUTH_ENABLED ? (
             <>
               <div className="mb-6 flex flex-col gap-3">
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => handleOAuth("oauth_google")}
-                  className="group flex w-full cursor-pointer items-center justify-center gap-3 rounded-[8px] border border-border bg-surface-container-lowest px-4 py-3 text-on-surface transition-colors hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <GoogleIcon className="size-5 transition-transform group-hover:scale-110" />
-                  <span className="text-lg font-semibold leading-[1.3]">
-                    Continue with Google
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => handleOAuth("oauth_linkedin_oidc")}
-                  className="group flex w-full cursor-pointer items-center justify-center gap-3 rounded-[8px] border border-border bg-surface-container-lowest px-4 py-3 text-on-surface transition-colors hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <LinkedInIcon className="size-5 text-[#0A66C2] transition-transform group-hover:scale-110" />
-                  <span className="text-lg font-semibold leading-[1.3]">
-                    Continue with LinkedIn
-                  </span>
-                </button>
+                {GOOGLE_AUTH_ENABLED ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => handleOAuth("oauth_google")}
+                    className="group flex w-full cursor-pointer items-center justify-center gap-3 rounded-[8px] border border-border bg-surface-container-lowest px-4 py-3 text-on-surface transition-colors hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <GoogleIcon className="size-5 transition-transform group-hover:scale-110" />
+                    <span className="text-lg font-semibold leading-[1.3]">
+                      Continue with Google
+                    </span>
+                  </button>
+                ) : null}
+                {LINKEDIN_AUTH_ENABLED ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => handleOAuth("oauth_linkedin_oidc")}
+                    className="group flex w-full cursor-pointer items-center justify-center gap-3 rounded-[8px] border border-border bg-surface-container-lowest px-4 py-3 text-on-surface transition-colors hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <LinkedInIcon className="size-5 text-[#0A66C2] transition-transform group-hover:scale-110" />
+                    <span className="text-lg font-semibold leading-[1.3]">
+                      Continue with LinkedIn
+                    </span>
+                  </button>
+                ) : null}
               </div>
 
               <div className="mb-6 flex items-center gap-4">

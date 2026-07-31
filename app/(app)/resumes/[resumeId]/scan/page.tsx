@@ -102,7 +102,7 @@ export default async function DeepScanPage({
             Deep scan
           </h1>
           <p className="mt-2 max-w-2xl text-base leading-6 text-on-surface-variant">
-            How your resume holds up as a document a machine has to read —
+            How your resume holds up as a document a machine has to read,
             independent of any job. For job-specific keyword coverage, tailor it
             to a posting.
           </p>
@@ -133,7 +133,7 @@ export default async function DeepScanPage({
             icon={ShieldCheck}
             title="Formatting"
             score={Math.round(formatting.score)}
-            summary="Bullet length, density, and casing — the things that make a resume skimmable."
+            summary="Bullet length, density, and casing: the things that make a resume skimmable."
             flags={formatting.flags}
           />
           <ExtractionCard extraction={extraction} />
@@ -247,7 +247,7 @@ function ExtractionCard({
           <p className="mt-2 text-sm leading-6 text-on-surface-variant">
             {extraction.capturedWords} of {extraction.sourceWords} distinct
             words from your file reached the structured resume. Some loss is
-            normal — section headings and page furniture aren&apos;t content.
+            normal. Section headings and page furniture aren&apos;t content.
           </p>
 
           {extraction.droppedLines.length > 0 ? (
@@ -267,8 +267,8 @@ function ExtractionCard({
                 ))}
               </ul>
               <p className="mt-3 text-xs leading-5 text-on-surface-variant">
-                If any of these is real content, add it back in the editor — it
-                isn&apos;t in your resume as far as software is concerned.
+                If any of these is real content, add it back in the editor. As
+                far as software is concerned, it isn&apos;t in your resume.
               </p>
             </div>
           ) : (

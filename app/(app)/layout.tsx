@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useClerk } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 import {
   Bell,
   Briefcase,
@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { Logo } from "@/components/shell/logo";
+import { UserAvatar } from "@/components/shell/user-avatar";
 import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +78,7 @@ export default function AppLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { signOut } = useClerk();
+  const { user } = useUser();
   const collapsed = useSyncExternalStore(
     subscribeCollapsed,
     readCollapsed,
@@ -205,6 +207,46 @@ export default function AppLayout({
             {!collapsed && "Settings"}
           </Link>
         </div>
+
+        {/* Identity + real sign-out — the only place it lives now. */}
+        <div
+          className={cn(
+            "mt-4 flex items-center gap-3 border-t border-border px-3 pt-4",
+            collapsed && "flex-col justify-center px-0",
+          )}
+        >
+          <Link
+            href="/settings/profile"
+            title={collapsed ? (user?.username ?? "Account") : undefined}
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1 transition-colors hover:bg-surface-container-high"
+          >
+            <UserAvatar
+              seed={user?.id ?? "anonymous"}
+              photoUrl={user?.hasImage ? user.imageUrl : null}
+              name={user?.fullName}
+              username={user?.username}
+              email={user?.primaryEmailAddress?.emailAddress}
+              size={collapsed ? 32 : 36}
+            />
+            {!collapsed && (
+              <span className="min-w-0 truncate text-sm font-medium text-on-surface">
+                {user?.username ?? user?.fullName ?? "Account"}
+              </span>
+            )}
+          </Link>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            aria-label="Sign out"
+            title="Sign out"
+            className={cn(
+              "flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-destructive/10 hover:text-destructive",
+              collapsed && "size-8",
+            )}
+          >
+            <LogOut className="size-4" />
+          </button>
+        </div>
       </aside>
 
       {/* Main column */}
@@ -250,12 +292,14 @@ export default function AppLayout({
             >
               <Settings className="size-5" />
             </Link>
+            {/* Desktop sign-out lives in the sidebar now; mobile has no
+                sidebar, so it keeps this as its only way to sign out. */}
             <button
               type="button"
               onClick={handleSignOut}
               aria-label="Sign out"
-              title="Sign out (temp)"
-              className="flex size-8 cursor-pointer items-center justify-center rounded-full border border-border bg-surface-raised text-on-surface-variant transition-colors hover:border-destructive hover:text-destructive"
+              title="Sign out"
+              className="flex size-8 cursor-pointer items-center justify-center rounded-full border border-border bg-surface-raised text-on-surface-variant transition-colors hover:border-destructive hover:text-destructive md:hidden"
             >
               <LogOut className="size-4" />
             </button>

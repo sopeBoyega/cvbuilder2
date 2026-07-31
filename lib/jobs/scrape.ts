@@ -262,7 +262,7 @@ export function parseJobPostingHtml(html: string): ScrapedJobPosting {
   const text = htmlToText(region);
   if (text.length < MIN_EXTRACTED_CHARS) {
     throw new ScrapeError(
-      `We couldn't find a job description on that page — it may load its content with JavaScript. ${PASTE_INSTEAD}`,
+      `We couldn't find a job description on that page. It may load its content with JavaScript. ${PASTE_INSTEAD}`,
     );
   }
   return {
@@ -300,7 +300,7 @@ export async function fetchJobPostingFromUrl(
     // 403/999-style bot walls are the common case, not the exception.
     throw new ScrapeError(
       response.status === 404
-        ? "That page wasn't found — check the link."
+        ? "That page wasn't found. Check the link."
         : `That site blocks automated fetching (HTTP ${response.status}). ${PASTE_INSTEAD}`,
     );
   }
