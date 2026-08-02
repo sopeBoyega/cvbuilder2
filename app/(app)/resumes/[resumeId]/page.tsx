@@ -71,7 +71,11 @@ export default async function ResumeEditorPage({
         <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
           {version ? (
             <span className="whitespace-nowrap rounded-full border border-border bg-surface px-3 py-1 text-xs uppercase tracking-wider text-on-surface-variant">
-              {version.source === "edit" ? "Edited" : `Parsed from ${version.source}`}
+              {version.source === "edit"
+                ? "Edited"
+                : version.source === "scratch"
+                  ? "Built from scratch"
+                  : `Parsed from ${version.source}`}
               {version.atsScore !== null ? ` · ATS ${version.atsScore}` : ""}
             </span>
           ) : null}

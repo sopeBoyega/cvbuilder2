@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  AlertCircle,
   ArrowRight,
   ChevronDown,
   Loader2,
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { Logo } from "@/components/shell/logo";
+import { createBlankResume } from "@/lib/actions/resume";
 import { updateProfile } from "@/lib/actions/profile";
 import { BRAND } from "@/lib/brand";
 
@@ -40,25 +41,41 @@ export default function OnboardingProfilePage() {
   const [role, setRole] = useState("");
   const [industry, setIndustry] = useState("");
   const [experience, setExperience] = useState<ExperienceLevel>("senior");
+  const [error, setError] = useState<string | null>(null);
   const [finishing, startFinishing] = useTransition();
 
   /*
-   * Persist target role/industry to the profile (the same fields settings
-   * edits). Best-effort: onboarding never blocks on this save — the user can
-   * refine everything later in /settings/profile.
+   * This page only exists on the "start from scratch" path (upload/LinkedIn
+   * import create their resume immediately and never reach here — see
+   * lib/actions/resume.ts::importResume). Every exit from this page must
+   * therefore create the resume itself, or the user lands back on a dashboard
+   * with zero resumes and gets re-offered "start from scratch" again — the
+   * loop this page used to cause.
    */
-  function finish() {
+  function finishAndCreateResume(saveTargets: boolean) {
     startFinishing(async () => {
-      const targetRoles = role.trim() ? [role.trim()] : [];
-      const industryLabel = INDUSTRY_LABELS[industry];
-      if (targetRoles.length > 0 || industryLabel) {
-        await updateProfile({
-          headline: "",
-          targetRoles,
-          targetIndustries: industryLabel ? [industryLabel] : [],
-        });
+      setError(null);
+
+      // Best-effort: never block resume creation on this save. The user can
+      // refine target role/industry later in /settings/profile.
+      if (saveTargets) {
+        const targetRoles = role.trim() ? [role.trim()] : [];
+        const industryLabel = INDUSTRY_LABELS[industry];
+        if (targetRoles.length > 0 || industryLabel) {
+          await updateProfile({
+            headline: "",
+            targetRoles,
+            targetIndustries: industryLabel ? [industryLabel] : [],
+          });
+        }
       }
-      router.push("/dashboard");
+
+      const result = await createBlankResume();
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      router.push(`/resumes/${result.resumeId}/edit`);
     });
   }
 
@@ -209,17 +226,29 @@ export default function OnboardingProfilePage() {
               </div>
             </div>
 
+            {error ? (
+              <p
+                role="alert"
+                className="flex items-start gap-2 text-sm text-destructive"
+              >
+                <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                {error}
+              </p>
+            ) : null}
+
             {/* Actions */}
             <div className="mt-8 flex flex-col items-center justify-between border-t border-border pt-6 sm:flex-row">
-              <Link
-                href="/dashboard"
-                className="mb-4 text-sm leading-5 text-on-surface-variant transition-colors hover:text-primary sm:mb-0"
-              >
-                Skip for now
-              </Link>
               <button
                 type="button"
-                onClick={finish}
+                onClick={() => finishAndCreateResume(false)}
+                disabled={finishing}
+                className="mb-4 cursor-pointer text-sm leading-5 text-on-surface-variant transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 sm:mb-0"
+              >
+                Skip for now
+              </button>
+              <button
+                type="button"
+                onClick={() => finishAndCreateResume(true)}
                 disabled={finishing}
                 className="flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-base font-semibold leading-6 text-on-primary shadow-[0_0_15px_rgba(119,220,132,0.3)] transition-all hover:scale-[1.02] hover:bg-primary-fixed disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
               >
