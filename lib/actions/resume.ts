@@ -24,7 +24,7 @@ import {
 } from "@/lib/documents/extract-text";
 import { getTemplate } from "@/lib/documents/templates";
 import { RateLimitError } from "@/lib/rate-limit";
-import { ResumeContent } from "@/lib/validation/resume";
+import { ResumeContent, emptyResumeContent } from "@/lib/validation/resume";
 
 const IMPORT_SOURCES = ["upload", "linkedin"] as const;
 type ImportSource = (typeof IMPORT_SOURCES)[number];
@@ -128,6 +128,56 @@ export async function importResume(
 
 function fileBaseName(name: string): string {
   return name.replace(/\.[^./\\]+$/, "").trim() || "Untitled resume";
+}
+
+export type CreateBlankResumeState =
+  | { ok: true; resumeId: string }
+  | { ok: false; error: string };
+
+/**
+ * Onboarding's "Start from scratch" path. Previously this path created
+ * nothing — `/onboarding/profile` only saved target role/industry and sent
+ * the user to a dashboard with zero resumes, which just re-offered the same
+ * "start from scratch" card (a real loop). This is the one place that path
+ * actually creates a resume, seeded with `emptyResumeContent` and no job
+ * description, so the editor opens with every section empty and ready to
+ * fill in — the "guided, section by section" the onboarding card promises.
+ *
+ * Returns rather than redirects (unlike `importResume`) since it's called
+ * imperatively from a client component, not through a bound form action.
+ */
+export async function createBlankResume(): Promise<CreateBlankResumeState> {
+  const { userId } = await auth();
+  if (!userId) return { ok: false, error: "You need to be signed in." };
+
+  const [profile] = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.clerkUserId, userId))
+    .limit(1);
+  if (!profile) {
+    return {
+      ok: false,
+      error: "Your profile isn't ready yet. Give it a moment and try again.",
+    };
+  }
+
+  const content = emptyResumeContent(profile.name ?? "");
+
+  const [resume] = await db
+    .insert(resumes)
+    .values({ profileId: profile.id, title: "Untitled resume" })
+    .returning();
+
+  // No atsScore: an empty resume scoring "well" on structure/formatting would
+  // be a meaningless number to show before the user has written anything.
+  await db.insert(resumeVersions).values({
+    resumeId: resume.id,
+    content,
+    source: "scratch",
+  });
+
+  return { ok: true, resumeId: resume.id };
 }
 
 const SetTemplateInput = z.object({
