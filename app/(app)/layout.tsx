@@ -292,19 +292,37 @@ export default function AppLayout({
             >
               <Settings className="size-5" />
             </Link>
-            {/* Desktop sign-out lives in the sidebar now; mobile has no
-                sidebar, so it keeps this as its only way to sign out. */}
-            <button
-              type="button"
-              onClick={handleSignOut}
-              aria-label="Sign out"
-              title="Sign out"
-              className="flex size-8 cursor-pointer items-center justify-center rounded-full border border-border bg-surface-raised text-on-surface-variant transition-colors hover:border-destructive hover:text-destructive md:hidden"
-            >
-              <LogOut className="size-4" />
-            </button>
           </div>
         </header>
+
+        {/* Mobile identity + sign-out — the sidebar's block doesn't exist on
+            mobile (no sidebar there), so this is its direct equivalent. */}
+        <div className="flex items-center justify-between gap-4 border-b border-border bg-surface-container-low px-4 py-3 md:hidden">
+          <Link
+            href="/settings/profile"
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1 transition-colors hover:bg-surface-container-high"
+          >
+            <UserAvatar
+              seed={user?.id ?? "anonymous"}
+              photoUrl={user?.hasImage ? user.imageUrl : null}
+              name={user?.fullName}
+              username={user?.username}
+              email={user?.primaryEmailAddress?.emailAddress}
+              size={32}
+            />
+            <span className="min-w-0 truncate text-sm font-medium text-on-surface">
+              {user?.username ?? user?.fullName ?? "Account"}
+            </span>
+          </Link>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-on-surface-variant transition-colors hover:border-destructive hover:text-destructive"
+          >
+            <LogOut className="size-4" />
+            Sign out
+          </button>
+        </div>
 
         <main className="pb-24 md:pb-0">{children}</main>
       </div>
