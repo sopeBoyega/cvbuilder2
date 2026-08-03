@@ -17,7 +17,14 @@
  * `handleOAuth`, the `/sso-callback` route, and the icon components all stay
  * wired regardless of these flags.
  */
-/** ON since 2026-07-31: Google Cloud verification approved, credentials added to Clerk production. */
-export const GOOGLE_AUTH_ENABLED: boolean = true;
+/**
+ * OFF again as of 2026-07-31: owner hit bugs after enabling and disabled it
+ * (their own commit b0712aa). A later "merge master into sope" (406c6f6)
+ * silently reverted that back to `true` without anyone asking for it — so
+ * this value re-flips it to `false` to match the owner's actual, current
+ * intent. Do not flip this back to `true` without confirming what the bugs
+ * were and that they're resolved.
+ */
+export const GOOGLE_AUTH_ENABLED: boolean = false;
 /** LinkedIn hasn't been through Clerk SSO setup yet — separate from Google's approval. */
 export const LINKEDIN_AUTH_ENABLED: boolean = false;
