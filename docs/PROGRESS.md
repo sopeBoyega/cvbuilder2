@@ -704,6 +704,15 @@ Once Pro is confirmed active, `isPro()` gates the AI quota
 
 ## 7. Known issues / TODO backlog
 
+- **2026-11-16: Vercel downgraded to Hobby.** Changed `vercel.json` Discover
+  ingestion from every six hours to `0 4 * * *` (daily, 04:00 UTC / 05:00
+  Lagos; Hobby may invoke anywhere within the scheduled hour). Hobby rejects
+  schedules more frequent than daily. This reduces planned JSearch calls from
+  48/day to 12/day. Requires a production deployment to apply; does not itself
+  clear `DEPLOYMENT_PAUSED`. Check the Vercel pause banner/account usage and
+  resume service separately if required. Earlier Pro-trial schedule notes above
+  are historical. Verified JSON and diff locally; Vercel deployment not verified.
+
 - ~~[billing] test price revert~~ DONE 2026-07-13: real ₦25,000 price + plan
   live and owner-verified.
 - **AI paths never verified against the live API by the assistant** (no key in
